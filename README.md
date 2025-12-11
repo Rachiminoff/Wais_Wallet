@@ -69,7 +69,7 @@ Run the app with:
 
 ---
 
-## Collaboration (for teammates new to GitHub)
+## Collaboration (for teammates unfamiliar with GitHub)
 
 Here’s how your team can work together safely:
 
