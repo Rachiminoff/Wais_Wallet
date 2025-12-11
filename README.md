@@ -69,46 +69,48 @@ Run the app with:
 
 ---
 
-## Collaboration (for teammates unfamiliar with GitHub)
-
-Here’s how your team can work together safely:
+## Collaboration
 
 ### 1. Make Your Own Branch
-Never work directly on `main`. Create a branch for your feature:  
-`git checkout -b feature/your-feature-name`
+Never work directly on `main`. Create a branch for your **feature**.
 
-**Example:**  
-`git checkout -b feature/add-login-screen`
+> A **feature** is a new addition or change in the project—like a new screen, component, or functionality.
+
+git checkout -b feature/your-feature-name
+
+**Example:**
+
+git checkout -b feature/add-login-screen
 
 ### 2. Work on Your Feature
-- Open the project in VS Code  
-- Make your changes or add new screens/components  
-- Save your work frequently  
+- Open the project in VS Code.  
+- Make your changes or add new screens/components.  
+- Save your work frequently.  
 
 ### 3. Commit Your Changes
-Once your work is ready, save it in Git:  
-`git add .`  
-`git commit -m "Add login screen"`
+Once your work is ready, save it in Git:
 
-- `git add .` stages all changes  
-- `git commit -m "..."` saves a snapshot with a message  
+git add .
+git commit -m "Add login screen"
 
+- `git add .` = mark all your changes to be saved  
+- `git commit -m "..."` = actually save a snapshot with a note
+  
 ### 4. Push Your Branch to GitHub
-`git push origin feature/your-feature-name`
+
+git push origin feature/your-feature-name
 
 ### 5. Open a Pull Request
-- Go to the GitHub repo in a browser: `Wais_Wallet`  
-- Click **Compare & Pull Request** on your branch  
-- Give your PR a descriptive title and submit it  
-
-Teammates can review, comment, and merge when ready
+- Go to the GitHub repo in a browser (e.g., `Wais_Wallet`).  
+- Click **Compare & Pull Request** on your branch.  
+- Give your PR a descriptive title and submit it.  
 
 ### 6. Update Your Local Project
-Before starting new work, make sure you have the latest `main` branch:  
-`git checkout main`  
-`git pull origin main`
+Before starting new work, make sure you have the latest `main` branch:
 
-This keeps your local project up-to-date with your team’s changes
+git checkout main
+git pull origin main
+
 
 
 
