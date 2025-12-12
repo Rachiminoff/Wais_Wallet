@@ -13,20 +13,38 @@ export const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   title: {
-    marginBottom: 10,
+    marginBottom: 8,
     textAlign: 'center',
-    color: '#0f4248',
+    color: '#1a3a3a',
+    fontSize: 28,
+    fontWeight: '700',
+  },
+  text: {
+    color: '#ffffff',
   },
   subtitle: {
-    marginBottom: 40,
+    marginBottom: 20,
     textAlign: 'center',
-    fontSize: 16,
-    opacity: 0.7,
+    fontSize: 13,
+    color: '#1a3a3a',
+    paddingHorizontal: 40,
+  },
+  formTitle: {
+    marginTop: 11,
+    marginBottom: 26,
+    textAlign: 'center',
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#ffffff',
   },
   form: {
-    width: '100%',
-    maxWidth: 400,
+    width: '95%',
+    maxWidth: 380,
     alignSelf: 'center',
+    marginTop: 20,
+    backgroundColor: 'rgba(15, 30, 46, 0.7)',
+    borderRadius: 20,
+    padding: 26,
   },
   input: {
     backgroundColor: '#f5f5f5',
@@ -37,26 +55,28 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
   },
-  loginButton: {
-    backgroundColor: '#007AFF',
+  button: {
+    backgroundColor: '#528d94',
     borderRadius: 8,
     padding: 15,
     alignItems: 'center',
     marginTop: 10,
-    marginBottom: 15,
+    marginBottom: 30,
   },
-  loginButtonText: {
+  buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-  forgotLink: {
+  link: {
     alignSelf: 'center',
-    marginBottom: 20,
+    textDecorationLine: 'underline',
+    color: '#ffffff',
   },
-  signupContainer: {
+  formContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 40,
   },
 });
