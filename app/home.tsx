@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 import styles from './styles/HomeScreenStyles';
 
 export default function HomeScreen() {
@@ -38,7 +38,7 @@ export default function HomeScreen() {
           ['Transportation', '₱700.00'],
           ['Savings', '₱3,000.00'],
         ].map((item, index) => (
-          <View key={index} style={styles.row}>            
+          <View testID={`pocket-${index}`} style={styles.row}>            
             <Text style={styles.label}>{item[0]}</Text>
             <Text style={styles.value}>{item[1]}</Text>
           </View>
@@ -53,5 +53,3 @@ export default function HomeScreen() {
     </View>
   );
 }
-
-
