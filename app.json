@@ -1,15 +1,17 @@
 {
   "expo": {
-    "name": "myapp",
-    "slug": "myapp",
+    "name": "Wais Wallet",
+    "slug": "wais-wallet",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "icon": "./assets/logo.png",
+    "scheme": "waiswallet",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true
+    "splash": {
+      "image": "./assets/forest-bg.jpg",
+      "resizeMode": "cover",
+      "backgroundColor": "#2d5016"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,24 +21,17 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
-    },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "predictiveBackGestureEnabled": false,
+      "package": "com.daeowob.waiswallet"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
-          "dark": {
-            "backgroundColor": "#000000"
-          }
+          "image": "./assets/forest-bg.jpg",
+          "resizeMode": "cover",
+          "backgroundColor": "#2d5016"
         }
       ]
     ],

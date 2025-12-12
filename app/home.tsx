@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 import styles from './styles/HomeScreenStyles';
 
 export default function HomeScreen() {
@@ -53,5 +53,3 @@ export default function HomeScreen() {
     </View>
   );
 }
-
-
