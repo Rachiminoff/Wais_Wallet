@@ -7,7 +7,7 @@ import { BalanceUpdate, FormattedAmountDisplay, Packet, User } from '../types';
 export const getCurrentUser = async (): Promise<User> => {
   return {
     id: 'user_1',
-    name: 'JUANITA BATUMBAKAL',
+    name: 'JUANITA',
     email: 'jaunita.batumbakal@gmail.com',
     balance: 10000.00, // Changed to 10,000 for example
     currency: 'PHP',
