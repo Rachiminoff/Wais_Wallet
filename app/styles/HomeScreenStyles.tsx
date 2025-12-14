@@ -1,108 +1,318 @@
-import { StyleSheet } from 'react-native';
+import { Dimensions, StyleSheet } from 'react-native';
 
-export default StyleSheet.create({
+const { width } = Dimensions.get('window');
+
+const styles = StyleSheet.create({
+  // ====================
+  // MAIN CONTAINERS
+  // ====================
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#F4F6FB',
-    paddingTop: 60,
+    backgroundColor: '#fff',
   },
-  header: {
-    paddingHorizontal: 20,
+
+  // ====================
+  // LOADING STATE
+  // ====================
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
   },
-  userInfo: {
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+  },
+
+  // ====================
+  // GRADIENT BALANCE CARD (#528d94 gradient)
+  // ====================
+  gradientBalanceCard: {
+    marginBottom: 20,
+    overflow: 'hidden',
+    borderTopLeftRadius: 0, // Sharp top corners
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 34, // Rounded bottom corners
+    borderBottomRightRadius: 34,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  gradientBalanceCardInner: {
+    padding: 24,
+    // Background color will be set by LinearGradient component
+  },
+  
+  // Sharp top extension
+  topExtension: {
+    position: 'absolute',
+    top: -100, // Extends above the card
+    left: 0,
+    right: 0,
+    height: 100,
+    backgroundColor: '#528d94',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+
+  // Card header with profile picture
+  cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 30,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.2)',
+    paddingBottom: 20,
   },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 15,
+  profileImageContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-  helloText: {
-    fontSize: 18,
+  profileImagePlaceholder: {
+    fontSize: 24,
     fontWeight: '700',
-    color: '#000000ff',
+    color: '#FFFFFF',
   },
-  emailText: {
-    fontSize: 13,
-    color: '#ccc',
+  profileTextContainer: {
+    flex: 1,
   },
-  balanceCard: {
-    backgroundColor: '#12324A',
-    margin: 20,
-    borderRadius: 20,
-    padding: 20,
+  cardGreeting: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 4,
+    letterSpacing: 0.5,
   },
-  safeLabel: {
-    color: '#fff',
+  cardEmail: {
     fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
   },
-  balanceRow: {
+
+  // ====================
+  // SAFE BALANCE - LEFT ALIGNED, BIG FONT
+  // ====================
+  safeBalanceSection: {
+    alignItems: 'flex-start',
+    marginBottom: 25,
+  },
+  safeBalanceLabel: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginBottom: 6,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  safeBalanceAmount: {
+    fontSize: 48,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+
+  // ====================
+  // TOTAL BALANCE - LEFT ALIGNED, SMALLER FONT
+  // ====================
+  totalBalanceSection: {
+    alignItems: 'flex-start',
+    marginBottom: 30,
+  },
+  totalBalanceLabel: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginBottom: 6,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  totalBalanceContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 4,
+  },
+  totalBalanceAmount: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+    marginRight: 12,
+  },
+  eyeIconButton: {
+    padding: 4,
+  },
+  dotsContainer: {
+    height: 40,
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  dotsText: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 4,
+  },
+  totalBalanceHint: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontStyle: 'italic',
+  },
+
+  // ====================
+  // ACTION BUTTONS
+  // ====================
+  actionButtonsContainer: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: 10,
+    gap: 15,
+    marginBottom: 30,
   },
-  balanceAmount: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  addBtn: {
-    backgroundColor: '#0ABAB5',
-    width: 35,
-    height: 35,
-    borderRadius: 20,
+  addFundsButton: {
+    flex: 1,
+    backgroundColor: '#a4a8b3',
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  addText: {
-    color: '#fff',
-    fontSize: 20,
-  },
-  totalLabel: {
-    color: '#ccc',
-    fontSize: 14,
-    marginTop: 5,
-  },
-  pocketsCard: {
-    backgroundColor: '#fff',
-    margin: 20,
-    borderRadius: 20,
-    padding: 20,
-  },
-  pocketsTitle: {
+  addFundsButtonText: {
+    color: '#ffffffff',
     fontSize: 16,
     fontWeight: '700',
-    marginBottom: 10,
   },
-  row: {
+  transferFundsButton: {
+    flex: 1,
+    backgroundColor: '#a4a8b3',
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  transferFundsButtonText: {
+    color: '#ffffffff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+
+  // ====================
+  // POCKETS SECTION
+  // ====================
+  section: {
+    paddingHorizontal: 20,
+    marginBottom: 30,
+  },
+  sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: 5,
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  label: {
-    fontSize: 15,
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#000000',
+    letterSpacing: 0.3,
   },
-  value: {
-    fontSize: 15,
+
+  // POCKETS LIST
+  pocketsList: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  navbar: {
+
+  // POCKET ROW
+  pocketRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E9ECEF',
+    backgroundColor: '#FFFFFF',
+  },
+  pocketRowLast: {
+    borderBottomWidth: 0,
+  },
+  pocketName: {
+    fontSize: 17,
+    color: '#212529',
+    flex: 1,
+  },
+  pocketAmount: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#1a374a',
+  },
+
+  // ====================
+  // BOTTOM NAVBAR
+  // ====================
+  bottomNavbar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 20,
-    backgroundColor: '#fff',
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  navIcon: {
-    fontSize: 24,
-    color: '#999',
+  navItem: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
   },
-  navIconActive: {
-    fontSize: 28,
-    color: '#0ABAB5',
+  navIconContainer: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  navItemText: {
+    fontSize: 12,
+    color: '#8E8E93',
+  },
+  navItemTextActive: {
+    fontSize: 12,
+    color: '#007AFF',
   },
 });
+
+export default styles;
