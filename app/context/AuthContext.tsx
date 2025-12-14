@@ -49,10 +49,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.log('Migrated user currency from USD to PHP');
         }
         
-        // TEMPORARY: Logout on app refresh for security
-        logoutUser();
-        setUser(null);
-        setIsAuthenticated(false);
+        // Restore user session from storage
+        if (existingUser) {
+          setUser(existingUser);
+          setIsAuthenticated(true);
+        } else {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
       } catch (err) {
         const errorMessage = err instanceof AuthError ? err.message : 'Failed to initialize authentication';
         console.error('Auth initialization error:', errorMessage);

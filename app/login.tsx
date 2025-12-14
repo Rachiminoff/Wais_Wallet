@@ -1,15 +1,15 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-  Alert,
-  ImageBackground,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    ImageBackground,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 // @ts-ignore
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -110,29 +110,45 @@ export default function LoginScreen() {
   };
 
   const handleClearStorage = () => {
-    Alert.alert(
-      'Clear All Data',
-      'This will delete all accounts and data. Are you sure?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear',
-          style: 'destructive',
-          onPress: () => {
-            try {
-              clearAllStorage();
-              setEmail('');
-              setPassword('');
-              setValidationErrors({});
-              setServerError(null);
-              Alert.alert('Success', 'All data cleared successfully!');
-            } catch (err) {
-              Alert.alert('Error', 'Failed to clear storage');
-            }
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm('Clear All Data\n\nThis will delete all accounts and data. Are you sure?');
+      if (!confirmed) return;
+      
+      try {
+        clearAllStorage();
+        setEmail('');
+        setPassword('');
+        setValidationErrors({});
+        setServerError(null);
+        window.alert('All data cleared successfully!');
+      } catch (err) {
+        window.alert('Failed to clear storage');
+      }
+    } else {
+      Alert.alert(
+        'Clear All Data',
+        'This will delete all accounts and data. Are you sure?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Clear',
+            style: 'destructive',
+            onPress: () => {
+              try {
+                clearAllStorage();
+                setEmail('');
+                setPassword('');
+                setValidationErrors({});
+                setServerError(null);
+                Alert.alert('Success', 'All data cleared successfully!');
+              } catch (err) {
+                Alert.alert('Error', 'Failed to clear storage');
+              }
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
   const handleNavigateToSignup = () => {

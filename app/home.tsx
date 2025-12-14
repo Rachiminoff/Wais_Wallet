@@ -2,21 +2,21 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router'; // Add this import
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
-  SafeAreaView,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View
+    Alert,
+    SafeAreaView,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 // Import business logic
 import {
-  calculateAllocatedAmount,
-  calculateSafeBalance,
-  formatCurrencyDisplay,
-  getPacketsForUser,
+    calculateAllocatedAmount,
+    calculateSafeBalance,
+    formatCurrencyDisplay,
+    getPacketsForUser,
 } from './scripts/home';
 
 // Import auth hook and types
@@ -195,14 +195,14 @@ const Home: React.FC = () => {
             colors={['#528d94', '#528d94']}
             style={styles.topExtension}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+            end={{ x: 1, y: 1 }}
           />
           
           <LinearGradient
-            colors={['#528d94', '#3a6d73']}
+            colors={['#528d94', '#314e5e', '#203646', '#0f1e2e']}
             style={styles.gradientBalanceCardInner}
             start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
+            end={{ x: 1, y: 1 }}
           >
             {/* Greeting and Email with Profile Picture */}
             <View style={styles.cardHeader}>
@@ -256,19 +256,19 @@ const Home: React.FC = () => {
             {/* ACTION BUTTONS - NO ICONS, COLOR #d4e3e1 */}
             <View style={styles.actionButtonsContainer}>
               <TouchableOpacity 
-                style={styles.addFundsButton}
+                style={styles.actionButton}
                 onPress={navigateToAddFunds}
                 activeOpacity={0.7}
               >
-                <Text style={styles.addFundsButtonText}>Add</Text>
+                <Text style={styles.actionButtonText}>Add</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
-                style={styles.transferFundsButton}
+                style={styles.actionButton}
                 onPress={handleTransferFunds}
                 activeOpacity={0.7}
               >
-                <Text style={styles.transferFundsButtonText}>Transfer</Text>
+                <Text style={styles.actionButtonText}>Transfer</Text>
               </TouchableOpacity>
             </View>
           </LinearGradient>

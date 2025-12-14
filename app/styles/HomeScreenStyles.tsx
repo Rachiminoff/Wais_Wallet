@@ -8,11 +8,11 @@ const styles = StyleSheet.create({
   // ====================
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#e6e6e6',
   },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#e6e6e6',
   },
 
   // ====================
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   gradientBalanceCardInner: {
-    padding: 24,
+    padding: 45,
     // Background color will be set by LinearGradient component
   },
   
@@ -175,43 +175,21 @@ const styles = StyleSheet.create({
   actionButtonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 15,
-    marginBottom: 30,
+    gap: 85,
   },
-  addFundsButton: {
+  actionButton: {
     flex: 1,
-    backgroundColor: '#a4a8b3',
+    backgroundColor: '#a4a8b36E',
     borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
   },
-  addFundsButtonText: {
-    color: '#ffffffff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  transferFundsButton: {
-    flex: 1,
-    backgroundColor: '#a4a8b3',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  transferFundsButtonText: {
+  actionButtonText: {
     color: '#ffffffff',
     fontSize: 16,
     fontWeight: '700',
@@ -244,6 +222,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#E9ECEF',
+    marginHorizontal: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,

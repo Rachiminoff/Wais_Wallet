@@ -9,7 +9,7 @@ export const getCurrentUser = async (): Promise<User> => {
     id: 'user_1',
     name: 'JUANITA',
     email: 'jaunita.batumbakal@gmail.com',
-    balance: 10000.00, // Changed to 10,000 for example
+    balance: 15000.00, // Increased from 10,000 to have positive safe balance
     currency: 'PHP',
     createdAt: new Date(),
   };

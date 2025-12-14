@@ -138,7 +138,7 @@ export const registerUser = (email: string, password: string, name: string): Use
       id: `user_${Date.now()}`,
       name: name.trim(),
       email: email.toLowerCase().trim(),
-      balance: 0,
+      balance: 15000, // Initialize with 15,000 PHP to ensure positive safe balance
       currency: 'PHP',
       createdAt: new Date().toISOString(),
       isGuest: false,
@@ -241,9 +241,7 @@ export const logoutUser = (): void => {
   try {
     storage.set(KEYS.IS_LOGGED_IN, false);
     storage.remove(KEYS.SESSION_TOKEN);
-    storage.remove(KEYS.USER);
-    storage.remove(KEYS.EMAIL);
-    storage.remove(KEYS.PASSWORD);
+    // Keep USER, EMAIL, and PASSWORD - only clear session, not account data
   } catch (error) {
     console.error('Error logging out user:', error);
     throw new AuthError('Logout failed', 'LOGOUT_FAILED');
