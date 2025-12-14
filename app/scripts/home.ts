@@ -116,7 +116,7 @@ export const formatCurrencyDisplay = (
     maximumFractionDigits: 2,
   });
   
-  const symbol = currency === 'PHP' ? '₱' : currency;
+  const symbol = '₱';
   
   return {
     symbol,

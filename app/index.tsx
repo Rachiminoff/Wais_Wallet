@@ -1,9 +1,24 @@
 import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { Image, ImageBackground, Text, TouchableOpacity, View } from 'react-native';
+import { useAuth } from './context/AuthContext';
 import { styles } from './styles/WelcomeScreenStyles';
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { isAuthenticated, loading } = useAuth();
+
+  useEffect(() => {
+    // Wait for auth to finish loading before navigating
+    if (loading) {
+      return;
+    }
+
+    // If user is already logged in, redirect to home
+    if (isAuthenticated) {
+      router.replace('/home');
+    }
+  }, [isAuthenticated, loading]);
 
   return (
     <ImageBackground 

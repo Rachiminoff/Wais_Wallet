@@ -16,24 +16,25 @@ import {
   calculateAllocatedAmount,
   calculateSafeBalance,
   formatCurrencyDisplay,
-  getCurrentUser,
   getPacketsForUser,
 } from './scripts/home';
 
-// Import types and styles
+// Import auth hook and types
+import { useAuth } from './context/AuthContext';
 import styles from './styles/HomeScreenStyles';
-import { Packet, User } from './types';
+import { Packet } from './types';
 
 const Home: React.FC = () => {
   const router = useRouter(); // Use expo-router's router
+  const { user: authUser, logout, error, loading: authLoading } = useAuth(); // Get user from auth context
   
   // ====================
   // STATE MANAGEMENT
   // ====================
-  const [user, setUser] = useState<User | null>(null);
   const [packets, setPackets] = useState<Packet[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showTotalBalance, setShowTotalBalance] = useState<boolean>(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   
   // Balance states
   const [totalBalance, setTotalBalance] = useState<number>(0);
@@ -44,18 +45,35 @@ const Home: React.FC = () => {
   // LIFE CYCLE
   // ====================
   useEffect(() => {
+    // Wait for auth context to finish loading before checking authentication
+    if (authLoading) {
+      return;
+    }
+
+    // Check if user is authenticated
+    if (!authUser) {
+      router.replace('/login');
+      return;
+    }
     loadUserData();
-  }, []);
+  }, [authUser, authLoading]);
 
   useEffect(() => {
-    if (packets.length > 0 && user) {
+    if (packets.length > 0 && authUser) {
       const allocated = calculateAllocatedAmount(packets);
       const safe = calculateSafeBalance(totalBalance, packets);
       
       setAllocatedAmount(allocated);
       setSafeBalance(safe);
     }
-  }, [totalBalance, packets, user]);
+  }, [totalBalance, packets, authUser]);
+
+  // Show context error if it appears
+  useEffect(() => {
+    if (error) {
+      setLoadError(error);
+    }
+  }, [error]);
 
   // ====================
   // UI HANDLERS
@@ -63,23 +81,26 @@ const Home: React.FC = () => {
   const loadUserData = async (): Promise<void> => {
     try {
       setIsLoading(true);
-      const currentUser = await getCurrentUser();
-      const userPackets = await getPacketsForUser(currentUser.id);
-      
-      setUser(currentUser);
-      setPackets(userPackets);
-      
-      setTotalBalance(currentUser.balance);
-      
-      const allocated = calculateAllocatedAmount(userPackets);
-      const safe = calculateSafeBalance(currentUser.balance, userPackets);
-      
-      setAllocatedAmount(allocated);
-      setSafeBalance(safe);
-      
-    } catch (error) {
-      console.error('Failed to load user data:', error);
-      Alert.alert('Error', 'Failed to load your data');
+      setLoadError(null);
+      // Get packets for the authenticated user
+      if (authUser) {
+        const userPackets = await getPacketsForUser(authUser.id);
+        setPackets(userPackets);
+        
+        // Use balance from authenticated user
+        setTotalBalance(authUser.balance);
+        
+        const allocated = calculateAllocatedAmount(userPackets);
+        const safe = calculateSafeBalance(authUser.balance, userPackets);
+        
+        setAllocatedAmount(allocated);
+        setSafeBalance(safe);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load user data';
+      console.error('Failed to load user data:', err);
+      setLoadError(errorMessage);
+      Alert.alert('Error', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -95,7 +116,12 @@ const Home: React.FC = () => {
 
   // Navigate to Add Funds page - USING EXPO ROUTER
   const navigateToAddFunds = (): void => {
-    router.push('./components/addFunds'); // Navigate to addFunds.tsx
+    try {
+      router.push('./components/addFunds'); // Navigate to addFunds.tsx
+    } catch (err) {
+      console.error('Navigation error:', err);
+      Alert.alert('Error', 'Failed to navigate to Add Funds');
+    }
   };
 
   // Handle transfer funds (TBA)
@@ -105,11 +131,20 @@ const Home: React.FC = () => {
 
   // Navigate to other pages
   const navigateToHome = (): void => {
-    router.push('/home');
+    try {
+      router.push('/home');
+    } catch (err) {
+      console.error('Navigation error:', err);
+    }
   };
   
   const navigateToBudget = (): void => {
-    router.push('/budget'); // You'll need to create budget.tsx
+    try {
+      router.push('/budget'); // You'll need to create budget.tsx
+    } catch (err) {
+      console.error('Navigation error:', err);
+      Alert.alert('Error', 'Failed to navigate to Budget');
+    }
   };
   
   const navigateToCards = (): void => {
@@ -120,10 +155,24 @@ const Home: React.FC = () => {
     router.push('/profile'); // You'll need to create profile.tsx
   };
 
+  const handleLogout = (): void => {
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', onPress: () => {}, style: 'cancel' },
+      {
+        text: 'Logout',
+        onPress: () => {
+          logout();
+          router.replace('/login');
+        },
+        style: 'destructive',
+      },
+    ]);
+  };
+
   // ====================
   // RENDER LOGIC
   // ====================
-  if (isLoading || !user) {
+  if (isLoading || !authUser) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.loadingContainer}>
@@ -133,8 +182,8 @@ const Home: React.FC = () => {
     );
   }
 
-  const totalBalanceDisplay = formatCurrencyDisplay(totalBalance, 'PHP');
-  const safeBalanceDisplay = formatCurrencyDisplay(safeBalance, 'PHP');
+  const totalBalanceDisplay = formatCurrencyDisplay(totalBalance, authUser.currency);
+  const safeBalanceDisplay = formatCurrencyDisplay(safeBalance, authUser.currency);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -161,8 +210,8 @@ const Home: React.FC = () => {
                 <Icon name="person" size={32} color="rgba(255, 255, 255, 0.9)" />
               </View>
               <View style={styles.profileTextContainer}>
-                <Text style={styles.cardGreeting}>HELLO, {user.name.toUpperCase()}!</Text>
-                <Text style={styles.cardEmail}>{user.email.toLowerCase()}</Text>
+                <Text style={styles.cardGreeting}>HELLO, {authUser.name.toUpperCase()}!</Text>
+                <Text style={styles.cardEmail}>{authUser.email.toLowerCase()}</Text>
               </View>
             </View>
             
@@ -175,10 +224,8 @@ const Home: React.FC = () => {
             {/* TOTAL BALANCE - LEFT ALIGNED, SMALLER FONT, CENSORED */}
             <View style={styles.totalBalanceSection}>
               <Text style={styles.totalBalanceLabel}>TOTAL BALANCE:</Text>
-              <TouchableOpacity 
+              <View 
                 style={styles.totalBalanceContainer}
-                onPress={handleToggleBalance}
-                activeOpacity={0.7}
               >
                 {showTotalBalance ? (
                   <>
@@ -203,7 +250,7 @@ const Home: React.FC = () => {
                     </TouchableOpacity>
                   </>
                 )}
-              </TouchableOpacity>
+              </View>
             </View>
             
             {/* ACTION BUTTONS - NO ICONS, COLOR #d4e3e1 */}
