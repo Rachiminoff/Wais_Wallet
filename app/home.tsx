@@ -1,22 +1,22 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router'; // Add this import
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    SafeAreaView,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 // Import business logic
 import {
-    calculateAllocatedAmount,
-    calculateSafeBalance,
-    formatCurrencyDisplay,
-    getPacketsForUser,
+  calculateAllocatedAmount,
+  calculateSafeBalance,
+  formatCurrencyDisplay,
+  getPacketsForUser,
 } from './scripts/home';
 
 // Import auth hook and types
@@ -140,15 +140,15 @@ const Home: React.FC = () => {
   
   const navigateToBudget = (): void => {
     try {
-      router.push('/budget'); // You'll need to create budget.tsx
+      router.push('./budget'); // You'll need to create budget.tsx
     } catch (err) {
       console.error('Navigation error:', err);
       Alert.alert('Error', 'Failed to navigate to Budget');
     }
   };
   
-  const navigateToCards = (): void => {
-    router.push('/cards'); // You'll need to create cards.tsx
+  const navigateToExpense = (): void => {
+    router.push('./expense');
   };
   
   const navigateToProfile = (): void => {
@@ -303,46 +303,56 @@ const Home: React.FC = () => {
 
       {/* BOTTOM NAVBAR WITH ICONS */}
       <View style={styles.bottomNavbar}>
-        <TouchableOpacity 
-          style={styles.navItem} 
-          onPress={navigateToHome}
-        >
-          <View style={styles.navIconContainer}>
-            <Icon name="home" size={22} color="#007AFF" />
-          </View>
-          <Text style={styles.navItemTextActive}>Home</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem} 
-          onPress={navigateToBudget}
-        >
-          <View style={styles.navIconContainer}>
-            <Icon name="pie-chart-outline" size={22} color="#8E8E93" />
-          </View>
-          <Text style={styles.navItemText}>Budget</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem} 
-          onPress={navigateToCards}
-        >
-          <View style={styles.navIconContainer}>
-            <Icon name="card-outline" size={22} color="#8E8E93" />
-          </View>
-          <Text style={styles.navItemText}>Cards</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem} 
-          onPress={navigateToProfile}
-        >
-          <View style={styles.navIconContainer}>
-            <Icon name="person-outline" size={22} color="#8E8E93" />
-          </View>
-          <Text style={styles.navItemText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+              <TouchableOpacity 
+                style={styles.navItem} 
+                onPress={navigateToHome}
+              >
+                <View style={styles.navIconContainer}>
+                  <Icon name="home-outline" size={22} color="#8E8E93" />
+                </View>
+                <Text style={styles.navItemText}>Home</Text>
+              </TouchableOpacity>
+      
+              <TouchableOpacity 
+                style={styles.navItem} 
+                onPress={navigateToExpense}
+              >
+              <View style={styles.navIconContainer}>
+                  <Icon name="wallet-outline" size={22} color="#8E8E93" />
+                </View>
+                <Text style={styles.navItemText}>Expense</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.navItem} 
+                onPress={navigateToBudget}
+              >
+                <View style={styles.navIconContainer}>
+                  <Icon name="clipboard-outline" size={22} color="#8E8E93" />
+                </View>
+                <Text style={styles.navItemText}>Budget</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.navItem} 
+                onPress={navigateToBudget}
+              >
+                <View style={styles.navIconContainer}>
+                  <Icon name="trophy-outline" size={22} color="#8E8E93" />
+                </View>
+                <Text style={styles.navItemText}>Savings</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.navItem} 
+                onPress={navigateToProfile}
+              >
+                <View style={styles.navIconContainer}>
+                  <Icon name="person" size={22} color="#007AFF" />
+                </View>
+                <Text style={styles.navItemTextActive}>Profile</Text>
+              </TouchableOpacity>
+              </View>
     </SafeAreaView>
   );
 };
