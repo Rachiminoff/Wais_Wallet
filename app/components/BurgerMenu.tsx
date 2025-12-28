@@ -15,6 +15,9 @@ interface BurgerMenuProps {
   onClose: () => void;
   onNotificationPress: () => void;
   onSettingsPress: () => void;
+  onProfilePress?: () => void;
+  onHelpPress?: () => void;
+  onLogoutPress?: () => void;
 }
 
 const { width, height } = Dimensions.get('window');
@@ -24,13 +27,14 @@ const BurgerMenu: React.FC<BurgerMenuProps> = ({
   onClose,
   onNotificationPress,
   onSettingsPress,
+  onProfilePress = () => console.log('Profile pressed'),
+  onHelpPress = () => console.log('Help pressed'),
+  onLogoutPress = () => console.log('Logout pressed'),
 }) => {
-  const menuItems = [
-    { id: 1, icon: 'notifications-outline', label: 'Notifications', onPress: onNotificationPress },
+  const menuItems: { id: number; icon: string; label: string; onPress: () => void }[] = [
     { id: 2, icon: 'settings-outline', label: 'Settings', onPress: onSettingsPress },
-    { id: 3, icon: 'person-outline', label: 'Profile', onPress: () => console.log('Profile') },
-    { id: 5, icon: 'help-circle-outline', label: 'Help & Support', onPress: () => console.log('Help') },
-    { id: 6, icon: 'exit-outline', label: 'Logout', onPress: () => console.log('Logout') },
+    { id: 4, icon: 'help-circle-outline', label: 'Help & Support', onPress: onHelpPress },
+    { id: 5, icon: 'exit-outline', label: 'Logout', onPress: onLogoutPress },
   ];
 
   return (
@@ -63,8 +67,8 @@ const BurgerMenu: React.FC<BurgerMenuProps> = ({
                   key={item.id}
                   style={styles.menuItem}
                   onPress={() => {
-                    item.onPress();
-                    onClose();
+                    item.onPress(); // call the function safely
+                    onClose();     // close menu
                   }}
                   activeOpacity={0.7}
                 >
@@ -86,14 +90,8 @@ const BurgerMenu: React.FC<BurgerMenuProps> = ({
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-  },
+  overlay: { flex: 1, flexDirection: 'row' },
+  backdrop: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.3)' },
   menuContainer: {
     width: width * 0.8,
     backgroundColor: '#fff',
@@ -103,9 +101,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 10,
   },
-  menuContent: {
-    flex: 1,
-  },
+  menuContent: { flex: 1 },
   menuHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -115,47 +111,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
   },
-  menuTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#1a374a',
-    fontFamily: 'TTNorms-Bold',
-    letterSpacing: 0.5,
-  },
-  closeButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: '#F8F9FA',
-  },
-  menuItems: {
-    paddingVertical: 20,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F8F9FA',
-  },
-  menuItemText: {
-    fontSize: 16,
-    color: '#1a374a',
-    fontFamily: 'TTNorms-Bold',
-    marginLeft: 16,
-  },
-  versionContainer: {
-    position: 'absolute',
-    bottom: 20,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
-  versionText: {
-    fontSize: 12,
-    color: '#8E8E93',
-    fontFamily: 'TTNorms-Bold',
-  },
+  menuTitle: { fontSize: 20, fontWeight: '800', color: '#1a374a', letterSpacing: 0.5 },
+  closeButton: { padding: 8, borderRadius: 20, backgroundColor: '#F8F9FA' },
+  menuItems: { paddingVertical: 20 },
+  menuItem: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: '#F8F9FA' },
+  menuItemText: { fontSize: 16, color: '#1a374a', marginLeft: 16 },
+  versionContainer: { position: 'absolute', bottom: 20, left: 0, right: 0, alignItems: 'center' },
+  versionText: { fontSize: 12, color: '#8E8E93' },
 });
 
 export default BurgerMenu;

@@ -1,178 +1,97 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router'; // Add this import
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import {
-    Alert,
-    SafeAreaView,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-// Import business logic
-import {
-    calculateAllocatedAmount,
-    calculateSafeBalance,
-    formatCurrencyDisplay,
-    getPacketsForUser,
-} from './scripts/home';
-
-// Import auth hook and types
-import { useAuth } from './context/AuthContext';
+import BurgerMenu from './components/BurgerMenu';
+import { formatCurrencyDisplay } from './scripts/home';
 import styles from './styles/HomeScreenStyles';
-import { Packet } from './types';
+import { Packet, User } from './types';
+import { getUser, setLoggedIn } from './utils/mmkvStorage';
 
-const Home: React.FC = () => {
-  const router = useRouter(); // Use expo-router's router
-  const { user: authUser, logout, error, loading: authLoading } = useAuth(); // Get user from auth context
-  
-  // ====================
-  // STATE MANAGEMENT
-  // ====================
-  const [packets, setPackets] = useState<Packet[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [showTotalBalance, setShowTotalBalance] = useState<boolean>(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  
-  // Balance states
-  const [totalBalance, setTotalBalance] = useState<number>(0);
-  const [safeBalance, setSafeBalance] = useState<number>(0);
-  const [allocatedAmount, setAllocatedAmount] = useState<number>(0);
+export default function HomeScreen() {
+  const router = useRouter();
 
-  // ====================
-  // LIFE CYCLE
-  // ====================
-  useEffect(() => {
-    // Wait for auth context to finish loading before checking authentication
-    if (authLoading) {
-      return;
-    }
+  // STATE
+  const [user, setUser] = useState<User | null>(null);
+  const [pockets, setPockets] = useState<Packet[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showTotalBalance, setShowTotalBalance] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    // Check if user is authenticated
-    if (!authUser) {
-      router.replace('/login');
-      return;
-    }
-    loadUserData();
-  }, [authUser, authLoading]);
+  // LOAD USER ON FOCUS
+  useFocusEffect(
+    useCallback(() => {
+      const loadUserData = () => {
+        setIsLoading(true);
+        try {
+          const loadedUser = getUser();
+          if (!loadedUser) {
+            router.replace('/login');
+            return;
+          }
+          setUser(loadedUser);
+          setPockets(loadedUser.pockets || []); // optional if you store pockets in user object
+        } catch (err) {
+          console.error('Failed to load user:', err);
+          Alert.alert('Error', 'Failed to load user data.');
+          router.replace('/login');
+        } finally {
+          setIsLoading(false);
+        }
+      };
 
-  useEffect(() => {
-    if (packets.length > 0 && authUser) {
-      const allocated = calculateAllocatedAmount(packets);
-      const safe = calculateSafeBalance(totalBalance, packets);
-      
-      setAllocatedAmount(allocated);
-      setSafeBalance(safe);
-    }
-  }, [totalBalance, packets, authUser]);
+      loadUserData();
+    }, [])
+  );
 
-  // Show context error if it appears
-  useEffect(() => {
-    if (error) {
-      setLoadError(error);
-    }
-  }, [error]);
+  // NAVIGATION HANDLERS
+  const navigateToAddFunds = () => router.push('/components/addFunds');
+  const navigateToBudget = () => router.push('/budget');
+  const navigateToCards = () => router.push('/cards');
+  const navigateToProfile = () => router.push('/profile');
+  const navigateToHome = () => router.push('/home');
 
-  // ====================
-  // UI HANDLERS
-  // ====================
-  const loadUserData = async (): Promise<void> => {
-    try {
-      setIsLoading(true);
-      setLoadError(null);
-      // Get packets for the authenticated user
-      if (authUser) {
-        const userPackets = await getPacketsForUser(authUser.id);
-        setPackets(userPackets);
-        
-        // Use balance from authenticated user
-        setTotalBalance(authUser.balance);
-        
-        const allocated = calculateAllocatedAmount(userPackets);
-        const safe = calculateSafeBalance(authUser.balance, userPackets);
-        
-        setAllocatedAmount(allocated);
-        setSafeBalance(safe);
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load user data';
-      console.error('Failed to load user data:', err);
-      setLoadError(errorMessage);
-      Alert.alert('Error', errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const handleTransferFunds = () =>
+    Alert.alert('Coming Soon', 'Transfer functionality coming soon!');
 
-  const handlePacketPress = (packetId: number): void => {
+  const handleToggleBalance = () =>
+    setShowTotalBalance((prev) => !prev);
+
+  const handlePacketPress = (packetId: string) => {
     console.log(`Packet ${packetId} pressed`);
   };
 
-  const handleToggleBalance = (): void => {
-    setShowTotalBalance(!showTotalBalance);
-  };
-
-  // Navigate to Add Funds page - USING EXPO ROUTER
-  const navigateToAddFunds = (): void => {
-    try {
-      router.push('./components/addFunds'); // Navigate to addFunds.tsx
-    } catch (err) {
-      console.error('Navigation error:', err);
-      Alert.alert('Error', 'Failed to navigate to Add Funds');
-    }
-  };
-
-  // Handle transfer funds (TBA)
-  const handleTransferFunds = (): void => {
-    Alert.alert('Coming Soon', 'Transfer funds functionality coming soon!');
-  };
-
-  // Navigate to other pages
-  const navigateToHome = (): void => {
-    try {
-      router.push('/home');
-    } catch (err) {
-      console.error('Navigation error:', err);
-    }
-  };
-  
-  const navigateToBudget = (): void => {
-    try {
-      router.push('/budget'); // You'll need to create budget.tsx
-    } catch (err) {
-      console.error('Navigation error:', err);
-      Alert.alert('Error', 'Failed to navigate to Budget');
-    }
-  };
-  
-  const navigateToCards = (): void => {
-    router.push('/cards'); // You'll need to create cards.tsx
-  };
-  
-  const navigateToProfile = (): void => {
-    router.push('/profile'); // You'll need to create profile.tsx
-  };
-
-  const handleLogout = (): void => {
+  // LOGOUT
+  const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', onPress: () => {}, style: 'cancel' },
+      { text: 'Cancel', style: 'cancel' },
       {
         text: 'Logout',
-        onPress: () => {
-          logout();
-          router.replace('/login');
-        },
         style: 'destructive',
+        onPress: () => {
+          try {
+            setLoggedIn(false);
+            router.replace('/login');
+          } catch (err) {
+            console.error('Logout failed:', err);
+            Alert.alert('Error', 'Failed to logout properly');
+          }
+        },
       },
     ]);
   };
 
-  // ====================
-  // RENDER LOGIC
-  // ====================
-  if (isLoading || !authUser) {
+  // LOADING STATE
+  if (isLoading || !user) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.loadingContainer}>
@@ -182,169 +101,145 @@ const Home: React.FC = () => {
     );
   }
 
-  const totalBalanceDisplay = formatCurrencyDisplay(totalBalance, authUser.currency);
-  const safeBalanceDisplay = formatCurrencyDisplay(safeBalance, authUser.currency);
+  // BALANCE DISPLAY
+  const safeBalanceDisplay = formatCurrencyDisplay(user.balance, user.currency);
+  const totalBalanceDisplay = formatCurrencyDisplay(
+    user.balance + pockets.reduce((acc, p) => acc + p.amount, 0),
+    user.currency
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* GRADIENT BALANCE CARD */}
+        {/* BALANCE CARD */}
         <View style={styles.gradientBalanceCard}>
-          {/* Sharp top extension with gradient */}
           <LinearGradient
             colors={['#528d94', '#528d94']}
             style={styles.topExtension}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
           />
-          
+
           <LinearGradient
             colors={['#528d94', '#314e5e', '#203646', '#0f1e2e']}
             style={styles.gradientBalanceCardInner}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
           >
-            {/* Greeting and Email with Profile Picture */}
-            <View style={styles.cardHeader}>
-              <View style={styles.profileImageContainer}>
-                <Icon name="person" size={32} color="rgba(255, 255, 255, 0.9)" />
-              </View>
-              <View style={styles.profileTextContainer}>
-                <Text style={styles.cardGreeting}>HELLO, {authUser.name.toUpperCase()}!</Text>
-                <Text style={styles.cardEmail}>{authUser.email.toLowerCase()}</Text>
+            {/* HEADER */}
+            <View style={{ ...styles.cardHeader, justifyContent: 'space-between' }}>
+              {/* Burger Menu */}
+              <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
+                <Icon name="menu" size={28} color="#fff" />
+              </TouchableOpacity>
+
+              {/* Profile */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginLeft: 16 }}>
+                <View style={styles.profileImageContainer}>
+                  <Icon name="person" size={32} color="rgba(255,255,255,0.9)" />
+                </View>
+
+                <View style={styles.profileTextContainer}>
+                  <Text style={styles.cardGreeting}>
+                    HELLO, {user.name.toUpperCase()}!
+                  </Text>
+                  <Text style={styles.cardEmail}>{user.email.toLowerCase()}</Text>
+                </View>
               </View>
             </View>
-            
-            {/* SAFE BALANCE - LEFT ALIGNED, BIG FONT */}
+
+            {/* SAFE BALANCE */}
             <View style={styles.safeBalanceSection}>
               <Text style={styles.safeBalanceLabel}>SAFE BALANCE:</Text>
               <Text style={styles.safeBalanceAmount}>{safeBalanceDisplay.full}</Text>
             </View>
-            
-            {/* TOTAL BALANCE - LEFT ALIGNED, SMALLER FONT, CENSORED */}
+
+            {/* TOTAL BALANCE */}
             <View style={styles.totalBalanceSection}>
               <Text style={styles.totalBalanceLabel}>TOTAL BALANCE:</Text>
-              <View 
-                style={styles.totalBalanceContainer}
-              >
+              <View style={styles.totalBalanceContainer}>
                 {showTotalBalance ? (
                   <>
                     <Text style={styles.totalBalanceAmount}>{totalBalanceDisplay.full}</Text>
-                    <TouchableOpacity 
-                      style={styles.eyeIconButton}
-                      onPress={handleToggleBalance}
-                    >
-                      <Icon name="eye-off-outline" size={20} color="rgba(255, 255, 255, 0.8)" />
+                    <TouchableOpacity style={styles.eyeIconButton} onPress={handleToggleBalance}>
+                      <Icon name="eye-off-outline" size={20} color="#fff" />
                     </TouchableOpacity>
                   </>
                 ) : (
                   <>
-                    <View style={styles.dotsContainer}>
-                      <Text style={styles.dotsText}>••••••••</Text>
-                    </View>
-                    <TouchableOpacity 
-                      style={styles.eyeIconButton}
-                      onPress={handleToggleBalance}
-                    >
-                      <Icon name="eye-outline" size={20} color="rgba(255, 255, 255, 0.8)" />
+                    <Text style={styles.dotsText}>••••••••</Text>
+                    <TouchableOpacity style={styles.eyeIconButton} onPress={handleToggleBalance}>
+                      <Icon name="eye-outline" size={20} color="#fff" />
                     </TouchableOpacity>
                   </>
                 )}
               </View>
             </View>
-            
-            {/* ACTION BUTTONS - NO ICONS, COLOR #d4e3e1 */}
+
+            {/* ACTIONS */}
             <View style={styles.actionButtonsContainer}>
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={navigateToAddFunds}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.actionButtonText}>Add</Text>
+              <TouchableOpacity style={styles.addFundsButton} onPress={navigateToAddFunds}>
+                <Text style={styles.addFundsButtonText}>Add Funds</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={handleTransferFunds}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.actionButtonText}>Transfer</Text>
+
+              <TouchableOpacity style={styles.transferFundsButton} onPress={handleTransferFunds}>
+                <Text style={styles.transferFundsButtonText}>Transfer</Text>
               </TouchableOpacity>
             </View>
           </LinearGradient>
         </View>
 
-        {/* POCKETS SECTION */}
+        {/* POCKETS */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Pockets:</Text>
-          </View>
-          <View style={styles.pocketsList}>
-            {packets.map((packet: Packet, index: number) => {
-              const packetAmountDisplay = formatCurrencyDisplay(packet.amount, 'PHP');
+          <Text style={styles.sectionTitle}>Pockets:</Text>
+          {pockets.length === 0 ? (
+            <Text style={{ padding: 20, color: '#666' }}>No pockets yet</Text>
+          ) : (
+            pockets.map((packet) => {
+              const amountDisplay = formatCurrencyDisplay(packet.amount, user.currency);
               return (
                 <TouchableOpacity
                   key={packet.id}
-                  style={[
-                    styles.pocketRow,
-                    index === packets.length - 1 && styles.pocketRowLast,
-                  ]}
+                  style={styles.pocketRow}
                   onPress={() => handlePacketPress(packet.id)}
-                  activeOpacity={0.7}
                 >
                   <Text style={styles.pocketName}>{packet.name}</Text>
-                  <Text style={styles.pocketAmount}>{packetAmountDisplay.full}</Text>
+                  <Text style={styles.pocketAmount}>{amountDisplay.full}</Text>
                 </TouchableOpacity>
               );
-            })}
-          </View>
+            })
+          )}
         </View>
       </ScrollView>
 
-      {/* BOTTOM NAVBAR WITH ICONS */}
+      {/* NAVBAR */}
       <View style={styles.bottomNavbar}>
-        <TouchableOpacity 
-          style={styles.navItem} 
-          onPress={navigateToHome}
-        >
-          <View style={styles.navIconContainer}>
-            <Icon name="home" size={22} color="#007AFF" />
-          </View>
+        <TouchableOpacity style={styles.navItem} onPress={navigateToHome}>
+          <Icon name="home" size={22} color="#007AFF" />
           <Text style={styles.navItemTextActive}>Home</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem} 
-          onPress={navigateToBudget}
-        >
-          <View style={styles.navIconContainer}>
-            <Icon name="pie-chart-outline" size={22} color="#8E8E93" />
-          </View>
+
+        <TouchableOpacity style={styles.navItem} onPress={navigateToBudget}>
+          <Icon name="pie-chart-outline" size={22} color="#8E8E93" />
           <Text style={styles.navItemText}>Budget</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem} 
-          onPress={navigateToCards}
-        >
-          <View style={styles.navIconContainer}>
-            <Icon name="card-outline" size={22} color="#8E8E93" />
-          </View>
+
+        <TouchableOpacity style={styles.navItem} onPress={navigateToCards}>
+          <Icon name="card-outline" size={22} color="#8E8E93" />
           <Text style={styles.navItemText}>Cards</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem} 
-          onPress={navigateToProfile}
-        >
-          <View style={styles.navIconContainer}>
-            <Icon name="person-outline" size={22} color="#8E8E93" />
-          </View>
+
+        <TouchableOpacity style={styles.navItem} onPress={navigateToProfile}>
+          <Icon name="person-outline" size={22} color="#8E8E93" />
           <Text style={styles.navItemText}>Profile</Text>
         </TouchableOpacity>
       </View>
+
+      {/* BURGER MENU */}
+      <BurgerMenu
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        onNotificationPress={() => console.log('Notifications')}
+        onSettingsPress={() => console.log('Settings')}
+        onHelpPress={() => console.log('Help')}
+        onLogoutPress={handleLogout}
+      />
     </SafeAreaView>
   );
-};
-
-export default Home;
+}
