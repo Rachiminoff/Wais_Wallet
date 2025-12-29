@@ -19,6 +19,11 @@ export default function RootLayout() {
           <Stack.Screen name="home" options={{ headerShown: false }} />
           <Stack.Screen name="profile" options={{ headerShown: false }} />
           <Stack.Screen name="addFunds" options={{ headerShown: false }} />
+          <Stack.Screen name="BudgetScreen" options={{ headerShown: false }} />
+          <Stack.Screen name="cards" options={{ headerShown: false }} />
+          <Stack.Screen name="transfer" options={{ headerShown: false }} />
+          <Stack.Screen name="EditPocketScreen" options={{ headerShown: false }} />
+          <Stack.Screen name="addPocket" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>
         <StatusBar style="auto" />

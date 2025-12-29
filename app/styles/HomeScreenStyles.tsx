@@ -232,12 +232,13 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#000000',
     letterSpacing: 0.3,
+    marginBottom: 24,
   },
 
   // POCKETS LIST
   pocketsList: {
     backgroundColor: '#F8F9FA',
-    borderRadius: 16,
+    borderRadius: 24, // increased from 16 for more rounded corners
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#E9ECEF',
