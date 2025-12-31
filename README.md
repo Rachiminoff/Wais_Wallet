@@ -111,6 +111,9 @@ Before starting new work, make sure you have the latest `main` branch:
 git checkout main
 git pull origin main
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the full list of changes.
 
 
 
