@@ -13,7 +13,6 @@ All notable changes to this project will be documented here.
 ### Changed
 - Home screen reloads user data when returning from other screens.
 - Add Funds updates the saved user balance properly.
-- Converted the navigation bar into a reusable component for improved modularity.
 - Added statistics and a pie chart to the Home/Dashboard screen.
 
 ### Added
@@ -39,6 +38,7 @@ All notable changes to this project will be documented here.
 - Total Balance is now derived from lifetime deposited funds instead of mutable balances.
 - Home screen balance logic now clearly separates Safe Balance, Pockets, and Savings.
 - Balance calculations were centralized to avoid double-counting.
+- Converted the navigation bar into a reusable component for improved modularity.
 
 ## Added
 
