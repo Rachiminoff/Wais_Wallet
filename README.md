@@ -113,6 +113,6 @@ git pull origin main
 
 ## Changelog
 
-See [CHANGELOG.md](./CHANGELOG.md) for the full list of changes.
+See [CHANGELOG.md](/CHANGELOG.md) for the full list of changes.
 
 
