@@ -19,3 +19,32 @@ All notable changes to this project will be documented here.
 
 ### Removed
 - Redundant local state copies that caused desynchronization.
+
+## [1.0.2] - 2025-12-31
+**By:** Yambao
+
+> **Note:** Run `npm install` first before working on this again.
+
+## Fixed
+
+- Total Balance no longer decreases when adding money to savings.
+- Eliminated incorrect balance calculations caused by combining Safe Balance with pocket balances.
+- Resolved inconsistencies where savings transfers appeared as expenses.
+- Prevented misleading Total Balance values after pocket or savings operations.
+
+## Changed
+
+- Total Balance is now derived from lifetime deposited funds instead of mutable balances.
+- Home screen balance logic now clearly separates Safe Balance, Pockets, and Savings.
+- Balance calculations were centralized to avoid double-counting.
+
+## Added
+
+- Clear distinction between Total Balance and current available funds in the Home screen logic.
+- Improved internal safeguards against balance desynchronization.
+- Added dark mode, transaction history page, and the main **Savings** functionality.
+
+## Removed
+
+- Faulty balance aggregation logic that caused misleading subtractions.
+- Dependence on pocket and savings balances when computing Total Balance.
