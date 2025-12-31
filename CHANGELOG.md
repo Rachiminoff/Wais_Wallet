@@ -13,7 +13,6 @@ All notable changes to this project will be documented here.
 ### Changed
 - Home screen reloads user data when returning from other screens.
 - Add Funds updates the saved user balance properly.
-- Added statistics and a pie chart to the Home/Dashboard screen.
 
 ### Added
 - Success modal after adding funds, displaying transaction details.
@@ -45,6 +44,8 @@ All notable changes to this project will be documented here.
 - Clear distinction between Total Balance and current available funds in the Home screen logic.
 - Improved internal safeguards against balance desynchronization.
 - Added dark mode, transaction history page, and the main **Savings** functionality.
+- Added statistics and a pie chart to the Home/Dashboard screen.
+
 
 ## Removed
 
