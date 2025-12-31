@@ -1,350 +1,434 @@
+// HomeScreen.tsx
+
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router'; // Add this import
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import {
-    Alert,
-    SafeAreaView,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  Dimensions,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { PieChart } from 'react-native-chart-kit';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { getStats } from './utils/mmkvStorage';
 
-// Import business logic
-import {
-    calculateAllocatedAmount,
-    calculateSafeBalance,
-    formatCurrencyDisplay,
-    getPacketsForUser,
-} from './scripts/home';
-
-// Import auth hook and types
-import { useAuth } from './context/AuthContext';
+import { BottomNavbar } from './components/BottomNavbar';
+import { useTheme } from './context/ThemeContext';
+import { formatCurrencyDisplay } from './scripts/home';
 import styles from './styles/HomeScreenStyles';
-import { Packet } from './types';
+import { Packet, User } from './types';
+import { getPockets, getSavings, getUser } from './utils/mmkvStorage';
 
-const Home: React.FC = () => {
-  const router = useRouter(); // Use expo-router's router
-  const { user: authUser, logout, error, loading: authLoading } = useAuth(); // Get user from auth context
-  
-  // ====================
-  // STATE MANAGEMENT
-  // ====================
-  const [packets, setPackets] = useState<Packet[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [showTotalBalance, setShowTotalBalance] = useState<boolean>(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  
-  // Balance states
-  const [totalBalance, setTotalBalance] = useState<number>(0);
-  const [safeBalance, setSafeBalance] = useState<number>(0);
-  const [allocatedAmount, setAllocatedAmount] = useState<number>(0);
+const screenWidth = Dimensions.get('window').width;
 
-  // ====================
-  // LIFE CYCLE
-  // ====================
-  useEffect(() => {
-    // Wait for auth context to finish loading before checking authentication
-    if (authLoading) {
-      return;
-    }
+/* ====================
+   CONSTANTS
+==================== */
+const PIE_COLORS = [
+  '#528d94',
+  '#6fa8dc',
+  '#93c47d',
+  '#ffd966',
+  '#e06666',
+  '#8e7cc3',
+];
 
-    // Check if user is authenticated
-    if (!authUser) {
-      router.replace('/login');
-      return;
-    }
-    loadUserData();
-  }, [authUser, authLoading]);
+/* ====================
+   MAIN SCREEN
+==================== */
+export default function HomeScreen() {
+  const router = useRouter();
+  const { colors } = useTheme();
 
-  useEffect(() => {
-    if (packets.length > 0 && authUser) {
-      const allocated = calculateAllocatedAmount(packets);
-      const safe = calculateSafeBalance(totalBalance, packets);
-      
-      setAllocatedAmount(allocated);
-      setSafeBalance(safe);
-    }
-  }, [totalBalance, packets, authUser]);
+  const [user, setUser] = useState<User | null>(null);
+  const [pockets, setPockets] = useState<Packet[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showTotalBalance, setShowTotalBalance] = useState(false);
 
-  // Show context error if it appears
-  useEffect(() => {
-    if (error) {
-      setLoadError(error);
-    }
-  }, [error]);
-
-  // ====================
-  // UI HANDLERS
-  // ====================
-  const loadUserData = async (): Promise<void> => {
-    try {
+  /* ====================
+     LOAD DATA
+  ==================== */
+  useFocusEffect(
+    useCallback(() => {
       setIsLoading(true);
-      setLoadError(null);
-      // Get packets for the authenticated user
-      if (authUser) {
-        const userPackets = await getPacketsForUser(authUser.id);
-        setPackets(userPackets);
-        
-        // Use balance from authenticated user
-        setTotalBalance(authUser.balance);
-        
-        const allocated = calculateAllocatedAmount(userPackets);
-        const safe = calculateSafeBalance(authUser.balance, userPackets);
-        
-        setAllocatedAmount(allocated);
-        setSafeBalance(safe);
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load user data';
-      console.error('Failed to load user data:', err);
-      setLoadError(errorMessage);
-      Alert.alert('Error', errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handlePacketPress = (packetId: number): void => {
-    console.log(`Packet ${packetId} pressed`);
-  };
-
-  const handleToggleBalance = (): void => {
-    setShowTotalBalance(!showTotalBalance);
-  };
-
-  // Navigate to Add Funds page - USING EXPO ROUTER
-  const navigateToAddFunds = (): void => {
-    try {
-      router.push('./components/addFunds'); // Navigate to addFunds.tsx
-    } catch (err) {
-      console.error('Navigation error:', err);
-      Alert.alert('Error', 'Failed to navigate to Add Funds');
-    }
-  };
-
-  // Handle transfer funds (TBA)
-  const handleTransferFunds = (): void => {
-    Alert.alert('Coming Soon', 'Transfer funds functionality coming soon!');
-  };
-
-  // Navigate to other pages
-  const navigateToHome = (): void => {
-    try {
-      router.push('/home');
-    } catch (err) {
-      console.error('Navigation error:', err);
-    }
-  };
-  
-  const navigateToBudget = (): void => {
-    try {
-      router.push('/budget'); // You'll need to create budget.tsx
-    } catch (err) {
-      console.error('Navigation error:', err);
-      Alert.alert('Error', 'Failed to navigate to Budget');
-    }
-  };
-  
-  const navigateToCards = (): void => {
-    router.push('/cards'); // You'll need to create cards.tsx
-  };
-  
-  const navigateToProfile = (): void => {
-    router.push('/profile'); // You'll need to create profile.tsx
-  };
-
-  const handleLogout = (): void => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', onPress: () => {}, style: 'cancel' },
-      {
-        text: 'Logout',
-        onPress: () => {
-          logout();
+      try {
+        const storedUser = getUser();
+        if (!storedUser) {
           router.replace('/login');
-        },
-        style: 'destructive',
-      },
-    ]);
-  };
+          return;
+        }
 
-  // ====================
-  // RENDER LOGIC
-  // ====================
-  if (isLoading || !authUser) {
+        setUser(storedUser);
+        setPockets(getPockets());
+      } catch (err) {
+        console.error(err);
+        Alert.alert('Error', 'Failed to load data');
+      } finally {
+        setIsLoading(false);
+      }
+    }, [])
+  );
+
+  /* ====================
+     LOADING STATE
+  ==================== */
+  if (isLoading || !user) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading...</Text>
-        </View>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+        <Text
+          style={{
+            textAlign: 'center',
+            marginTop: 40,
+            color: colors.muted,
+          }}
+        >
+          Loading...
+        </Text>
       </SafeAreaView>
     );
   }
 
-  const totalBalanceDisplay = formatCurrencyDisplay(totalBalance, authUser.currency);
-  const safeBalanceDisplay = formatCurrencyDisplay(safeBalance, authUser.currency);
+  /* ====================
+     CALCULATIONS
+  ==================== */
+  const safeBalanceDisplay = formatCurrencyDisplay(user.balance, user.currency);
 
+  const totalPocketBalance = pockets.reduce(
+    (sum, p) => sum + (typeof p.amount === 'number' ? p.amount : 0),
+    0
+  );
+
+const stats = getStats();
+
+const totalBalance = stats.totalBalanceAllTime;
+const totalBalanceDisplay = formatCurrencyDisplay(
+  totalBalance,
+  user.currency
+);
+
+
+  const savings = getSavings();
+
+  const mostCostlyPocket =
+    pockets.length > 0
+      ? [...pockets].sort((a, b) => b.amount - a.amount)[0]
+      : null;
+
+  const mostExpensiveSavings =
+    savings.length > 0
+      ? [...savings].sort((a, b) => b.targetAmount - a.targetAmount)[0]
+      : null;
+
+  /* ====================
+     PIE DATA
+  ==================== */
+  const validPockets = pockets.filter(
+    p => typeof p.amount === 'number' && p.amount > 0
+  );
+
+  const totalPocketAmount = validPockets.reduce((sum, p) => sum + p.amount, 0);
+
+  const pieData = validPockets.map((p, index) => {
+    const percent =
+      totalPocketAmount > 0
+        ? Math.round((p.amount / totalPocketAmount) * 100)
+        : 0;
+
+    return {
+      name: p.name,
+      percent,
+      population: p.amount,
+      color: PIE_COLORS[index % PIE_COLORS.length],
+    };
+  });
+
+  /* ====================
+     UI
+  ==================== */
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* GRADIENT BALANCE CARD */}
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* BALANCE CARD */}
         <View style={styles.gradientBalanceCard}>
-          {/* Sharp top extension with gradient */}
-          <LinearGradient
-            colors={['#528d94', '#528d94']}
-            style={styles.topExtension}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          />
-          
           <LinearGradient
             colors={['#528d94', '#314e5e', '#203646', '#0f1e2e']}
             style={styles.gradientBalanceCardInner}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
           >
-            {/* Greeting and Email with Profile Picture */}
-            <View style={styles.cardHeader}>
+            {/* PROFILE */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 18 }}>
               <View style={styles.profileImageContainer}>
-                <Icon name="person" size={32} color="rgba(255, 255, 255, 0.9)" />
+                <Icon name="person" size={32} color="rgba(255,255,255,0.9)" />
               </View>
+
               <View style={styles.profileTextContainer}>
-                <Text style={styles.cardGreeting}>HELLO, {authUser.name.toUpperCase()}!</Text>
-                <Text style={styles.cardEmail}>{authUser.email.toLowerCase()}</Text>
+                <Text style={styles.cardGreeting}>
+                  HELLO, {user.name.toUpperCase()}!
+                </Text>
+                <Text style={styles.cardEmail}>
+                  {user.email.toLowerCase()}
+                </Text>
               </View>
             </View>
-            
-            {/* SAFE BALANCE - LEFT ALIGNED, BIG FONT */}
+
+            {/* SAFE BALANCE */}
             <View style={styles.safeBalanceSection}>
               <Text style={styles.safeBalanceLabel}>SAFE BALANCE:</Text>
-              <Text style={styles.safeBalanceAmount}>{safeBalanceDisplay.full}</Text>
+              <Text style={styles.safeBalanceAmount}>
+                {safeBalanceDisplay.full}
+              </Text>
             </View>
-            
-            {/* TOTAL BALANCE - LEFT ALIGNED, SMALLER FONT, CENSORED */}
+
+            {/* TOTAL BALANCE */}
             <View style={styles.totalBalanceSection}>
               <Text style={styles.totalBalanceLabel}>TOTAL BALANCE:</Text>
-              <View 
-                style={styles.totalBalanceContainer}
-              >
+
+              <View style={styles.totalBalanceContainer}>
                 {showTotalBalance ? (
                   <>
-                    <Text style={styles.totalBalanceAmount}>{totalBalanceDisplay.full}</Text>
-                    <TouchableOpacity 
+                    <Text style={styles.totalBalanceAmount}>
+                      {totalBalanceDisplay.full}
+                    </Text>
+                    <TouchableOpacity
                       style={styles.eyeIconButton}
-                      onPress={handleToggleBalance}
+                      onPress={() => setShowTotalBalance(false)}
                     >
-                      <Icon name="eye-off-outline" size={20} color="rgba(255, 255, 255, 0.8)" />
+                      <Icon name="eye-off-outline" size={20} color="#fff" />
                     </TouchableOpacity>
                   </>
                 ) : (
                   <>
-                    <View style={styles.dotsContainer}>
-                      <Text style={styles.dotsText}>••••••••</Text>
-                    </View>
-                    <TouchableOpacity 
+                    <Text style={styles.dotsText}>••••••••</Text>
+                    <TouchableOpacity
                       style={styles.eyeIconButton}
-                      onPress={handleToggleBalance}
+                      onPress={() => setShowTotalBalance(true)}
                     >
-                      <Icon name="eye-outline" size={20} color="rgba(255, 255, 255, 0.8)" />
+                      <Icon name="eye-outline" size={20} color="#fff" />
                     </TouchableOpacity>
                   </>
                 )}
               </View>
             </View>
-            
-            {/* ACTION BUTTONS - NO ICONS, COLOR #d4e3e1 */}
+
+            {/* ACTION BUTTONS */}
             <View style={styles.actionButtonsContainer}>
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={navigateToAddFunds}
-                activeOpacity={0.7}
+              <TouchableOpacity
+                style={styles.addFundsButton}
+                onPress={() => router.push('/components/addFunds')}
               >
-                <Text style={styles.actionButtonText}>Add</Text>
+                <Text style={styles.addFundsButtonText}>Add Funds</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={handleTransferFunds}
-                activeOpacity={0.7}
+
+              <TouchableOpacity
+                style={styles.transferFundsButton}
+                onPress={() => router.push('/components/transfer')}
               >
-                <Text style={styles.actionButtonText}>Transfer</Text>
+                <Text style={styles.transferFundsButtonText}>Transfer</Text>
               </TouchableOpacity>
             </View>
           </LinearGradient>
         </View>
 
-        {/* POCKETS SECTION */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Pockets:</Text>
-          </View>
-          <View style={styles.pocketsList}>
-            {packets.map((packet: Packet, index: number) => {
-              const packetAmountDisplay = formatCurrencyDisplay(packet.amount, 'PHP');
+        {/* POCKETS */}
+        <View
+          style={[
+            styles.pocketsList,
+            {
+              marginHorizontal: 12,
+              borderRadius: 24,
+              overflow: 'hidden',
+              marginBottom: 12,
+              backgroundColor: colors.card,
+            },
+          ]}
+        >
+          {pockets.length === 0 ? (
+            <Text style={{ padding: 20, color: colors.muted }}>
+              No pockets yet
+            </Text>
+          ) : (
+            pockets.map((p, i) => {
+              const amount = formatCurrencyDisplay(p.amount, user.currency);
               return (
-                <TouchableOpacity
-                  key={packet.id}
+                <View
+                  key={p.id}
                   style={[
                     styles.pocketRow,
-                    index === packets.length - 1 && styles.pocketRowLast,
+                    i === pockets.length - 1 && { borderBottomWidth: 0 },
+                    { backgroundColor: colors.card },
                   ]}
-                  onPress={() => handlePacketPress(packet.id)}
-                  activeOpacity={0.7}
                 >
-                  <Text style={styles.pocketName}>{packet.name}</Text>
-                  <Text style={styles.pocketAmount}>{packetAmountDisplay.full}</Text>
-                </TouchableOpacity>
+                  <Text style={[styles.pocketName, { color: colors.text }]}>
+                    {p.name}
+                  </Text>
+                  <Text style={[styles.pocketAmount, { color: colors.text }]}>
+                    {amount.full}
+                  </Text>
+                </View>
               );
-            })}
-          </View>
+            })
+          )}
         </View>
+
+        {/* STATS */}
+        <View
+          style={{
+            marginHorizontal: 12,
+            backgroundColor: colors.card,
+            borderRadius: 24,
+            padding: 18,
+            marginBottom: 12,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: '700',
+              color: colors.text,
+              marginBottom: 12,
+            }}
+          >
+            STATS
+          </Text>
+
+          <StatRow
+            label="Pocket Balance"
+            value={formatCurrencyDisplay(totalPocketBalance, user.currency).full}
+          />
+
+          {mostCostlyPocket && (
+            <StatRow
+              label="Most Costly Pocket"
+              value={`${mostCostlyPocket.name} • ${
+                formatCurrencyDisplay(
+                  mostCostlyPocket.amount,
+                  user.currency
+                ).full
+              }`}
+            />
+          )}
+
+          {mostExpensiveSavings && (
+            <StatRow
+              label="Most Expensive Savings Goal"
+              value={`${mostExpensiveSavings.name} • ${
+                formatCurrencyDisplay(
+                  mostExpensiveSavings.targetAmount,
+                  user.currency
+                ).full
+              }`}
+            />
+          )}
+        </View>
+
+        {/* POCKET DISTRIBUTION */}
+        {pieData.length > 0 && (
+          <View
+            style={{
+              marginHorizontal: 12,
+              backgroundColor: colors.card,
+              borderRadius: 24,
+              paddingVertical: 18,
+              marginBottom: 12,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '700',
+                color: colors.text,
+                marginBottom: 12,
+                paddingLeft: 18,
+              }}
+            >
+              POCKET DISTRIBUTION
+            </Text>
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18 }}>
+              <PieChart
+                data={pieData}
+                width={220}
+                height={220}
+                accessor="population"
+                backgroundColor="transparent"
+                hasLegend={false}
+                center={[60, 0]}
+                chartConfig={{
+                  color: () => colors.text,
+                }}
+              />
+
+              <View style={{ marginLeft: 24 }}>
+                {pieData.map(item => (
+                  <View
+                    key={item.name}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      marginBottom: 14,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 12,
+                        height: 12,
+                        borderRadius: 6,
+                        backgroundColor: item.color,
+                        marginRight: 10,
+                      }}
+                    />
+                    <Text style={{ fontSize: 13, color: colors.text }}>
+                      {item.percent}% {item.name}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            <Text
+              style={{
+                marginTop: 12,
+                fontSize: 11,
+                color: colors.muted,
+                textAlign: 'center',
+              }}
+            >
+              Percentages are based on total pocket balance
+            </Text>
+          </View>
+        )}
+
+        {/* SPACE FOR NAVBAR */}
+        <View style={{ height: 90 }} />
       </ScrollView>
 
-      {/* BOTTOM NAVBAR WITH ICONS */}
-      <View style={styles.bottomNavbar}>
-        <TouchableOpacity 
-          style={styles.navItem} 
-          onPress={navigateToHome}
-        >
-          <View style={styles.navIconContainer}>
-            <Icon name="home" size={22} color="#007AFF" />
-          </View>
-          <Text style={styles.navItemTextActive}>Home</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem} 
-          onPress={navigateToBudget}
-        >
-          <View style={styles.navIconContainer}>
-            <Icon name="pie-chart-outline" size={22} color="#8E8E93" />
-          </View>
-          <Text style={styles.navItemText}>Budget</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem} 
-          onPress={navigateToCards}
-        >
-          <View style={styles.navIconContainer}>
-            <Icon name="card-outline" size={22} color="#8E8E93" />
-          </View>
-          <Text style={styles.navItemText}>Cards</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem} 
-          onPress={navigateToProfile}
-        >
-          <View style={styles.navIconContainer}>
-            <Icon name="person-outline" size={22} color="#8E8E93" />
-          </View>
-          <Text style={styles.navItemText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+      {/* BOTTOM NAV */}
+      <BottomNavbar />
     </SafeAreaView>
   );
-};
+}
 
-export default Home;
+/* ====================
+   SMALL COMPONENTS
+==================== */
+const StatRow = ({ label, value }: { label: string; value: string }) => {
+  const { colors } = useTheme();
+
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 8,
+      }}
+    >
+      <Text style={{ color: colors.muted, fontSize: 13 }}>{label}</Text>
+      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text }}>
+        {value}
+      </Text>
+    </View>
+  );
+};

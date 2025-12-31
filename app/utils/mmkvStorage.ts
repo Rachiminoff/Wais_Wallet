@@ -1,299 +1,685 @@
 import { createMMKV } from 'react-native-mmkv';
+import { Packet, User } from '../types';
 
-// Custom error class for auth errors
-export class AuthError extends Error {
-  constructor(message: string, public code: string) {
-    super(message);
-    this.name = 'AuthError';
-  }
-}
-
-// Initialize MMKV storage
-let storage: any = null;
-
-try {
-  storage = createMMKV();
-} catch (error) {
-  console.error('Failed to initialize MMKV storage:', error);
-  // Create a fallback storage object
-  storage = {
-    set: (key: string, value: any) => {
-      throw new AuthError('Storage not available', 'STORAGE_INIT_FAILED');
-    },
-    getString: (key: string) => null,
-    getBoolean: (key: string) => false,
-    remove: (key: string) => false,
-    clearAll: () => {},
+/* ====================
+   TYPES
+==================== */
+export interface StatsRecord {
+  totalBalanceAllTime: number;
+  totalSpentAllTime: number;
+  mostCostlyPocket?: {
+    id: string;
+    name: string;
+    amount: number;
+  };
+  mostExpensiveSavingsGoal?: {
+    id: string;
+    name: string;
+    targetAmount: number;
   };
 }
 
-// User data type
-export interface User {
+export interface SavingsGoal {
   id: string;
   name: string;
-  email: string;
-  balance: number;
-  currency: string;
+  targetAmount: number;
+  currentAmount: number;
   createdAt: string;
-  isGuest: boolean;
 }
 
-// Auth storage keys
+/* ====================
+   TRANSACTIONS
+==================== */
+export type TransactionType =
+  | 'ADD_FUNDS'
+  | 'POCKET_CREATE'
+  | 'POCKET_DELETE'
+  | 'POCKET_ADD_FUNDS'
+  | 'POCKET_TO_SAFE'
+  | 'SAVINGS_CREATE'
+  | 'SAVINGS_ADD'
+  | 'SAVINGS_DELETE'
+  | 'SAVINGS_EDIT';
+
+export interface Transaction {
+  id: string;
+  type: TransactionType;
+  amount: number;
+  description: string;
+  createdAt: string;
+}
+
+/* ====================
+   BACKUP
+==================== */
+export interface AppBackup {
+  version: number;
+  exportedAt: string;
+  data: {
+    user: User | null;
+    pockets: Packet[];
+    savings: SavingsGoal[];
+    transactions: Transaction[];
+    stats: StatsRecord;
+    email: string | null;
+    password: string | null;
+  };
+}
+
+/* ====================
+   MMKV INSTANCE
+==================== */
+const storage = createMMKV();
+
+/* ====================
+   STORAGE KEYS
+==================== */
 const KEYS = {
   USER: 'user_data',
+  POCKETS: 'pockets_data',
+  SAVINGS: 'savings_data',
+  STATS: 'stats_records',
   EMAIL: 'user_email',
   PASSWORD: 'user_password',
   IS_LOGGED_IN: 'is_logged_in',
-  SESSION_TOKEN: 'session_token',
+  TRANSACTIONS: 'transactions_data',
 };
 
-/**
- * Validate email format
- */
-const isValidEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+/* ====================
+   TRANSACTIONS
+==================== */
+export const getTransactions = (): Transaction[] => {
+  const data = storage.getString(KEYS.TRANSACTIONS);
+  return data ? JSON.parse(data) : [];
 };
 
-/**
- * Validate password strength
- */
-const isValidPassword = (password: string): boolean => {
-  return password ? password.length >= 6 : false;
+const saveTransactions = (txs: Transaction[]): void => {
+  storage.set(KEYS.TRANSACTIONS, JSON.stringify(txs));
 };
 
-/**
- * Save user data to MMKV storage
- */
-export const saveUser = (user: User): void => {
-  try {
-    if (!user || !user.id) {
-      throw new AuthError('Invalid user data', 'INVALID_USER_DATA');
-    }
-    storage.set(KEYS.USER, JSON.stringify(user));
-  } catch (error) {
-    if (error instanceof AuthError) {
-      throw error;
-    }
-    console.error('Error saving user to MMKV:', error);
-    throw new AuthError('Failed to save user data', 'SAVE_USER_FAILED');
+const recordTransaction = (
+  type: TransactionType,
+  amount: number,
+  description: string
+): void => {
+  const txs = getTransactions();
+
+  const tx: Transaction = {
+    id: `tx_${Date.now()}`,
+    type,
+    amount,
+    description,
+    createdAt: new Date().toISOString(),
+  };
+
+  saveTransactions([tx, ...txs]);
+};
+
+/* ====================
+   STATS
+==================== */
+export const getStats = (): StatsRecord => {
+  const data = storage.getString(KEYS.STATS);
+  return data
+    ? JSON.parse(data)
+    : { totalBalanceAllTime: 0, totalSpentAllTime: 0 };
+};
+
+const saveStats = (stats: StatsRecord): void => {
+  storage.set(KEYS.STATS, JSON.stringify(stats));
+};
+
+const bumpTotalBalance = (amount: number): void => {
+  const stats = getStats();
+  stats.totalBalanceAllTime += amount;
+  saveStats(stats);
+};
+
+const bumpTotalSpent = (amount: number): void => {
+  const stats = getStats();
+  stats.totalSpentAllTime += amount;
+  saveStats(stats);
+};
+
+const updateMostCostlyPocket = (
+  id: string,
+  name: string,
+  amount: number
+): void => {
+  const stats = getStats();
+  if (!stats.mostCostlyPocket || amount > stats.mostCostlyPocket.amount) {
+    stats.mostCostlyPocket = { id, name, amount };
+    saveStats(stats);
   }
 };
 
-/**
- * Get user data from MMKV storage
- */
+const updateMostExpensiveSavings = (
+  id: string,
+  name: string,
+  targetAmount: number
+): void => {
+  const stats = getStats();
+  if (
+    !stats.mostExpensiveSavingsGoal ||
+    targetAmount > stats.mostExpensiveSavingsGoal.targetAmount
+  ) {
+    stats.mostExpensiveSavingsGoal = { id, name, targetAmount };
+    saveStats(stats);
+  }
+};
+
+/* ====================
+   USER
+==================== */
 export const getUser = (): User | null => {
-  try {
-    const userData = storage.getString(KEYS.USER);
-    if (!userData) {
-      return null;
-    }
-    const parsedUser = JSON.parse(userData);
-    
-    // Validate user structure
-    if (!parsedUser.id || !parsedUser.email || !parsedUser.name) {
-      throw new AuthError('Corrupted user data', 'CORRUPTED_USER_DATA');
-    }
-    
-    return parsedUser;
-  } catch (error) {
-    if (error instanceof AuthError) {
-      throw error;
-    }
-    console.error('Error retrieving user from MMKV:', error);
-    throw new AuthError('Failed to retrieve user data', 'GET_USER_FAILED');
-  }
+  const data = storage.getString(KEYS.USER);
+  return data ? JSON.parse(data) : null;
 };
 
-/**
- * Register a new user (store email and password)
- */
-export const registerUser = (email: string, password: string, name: string): User => {
-  try {
-    // Validate inputs
-    if (!email || !email.trim()) {
-      throw new AuthError('Email is required', 'EMPTY_EMAIL');
-    }
-    if (!isValidEmail(email)) {
-      throw new AuthError('Invalid email format', 'INVALID_EMAIL_FORMAT');
-    }
-    if (!password) {
-      throw new AuthError('Password is required', 'EMPTY_PASSWORD');
-    }
-    if (!isValidPassword(password)) {
-      throw new AuthError('Password must be at least 6 characters', 'WEAK_PASSWORD');
-    }
-    if (!name || !name.trim()) {
-      throw new AuthError('Name is required', 'EMPTY_NAME');
-    }
-
-    // Check if email already exists
-    const existingEmail = storage.getString(KEYS.EMAIL);
-    if (existingEmail === email) {
-      throw new AuthError('Email already registered', 'EMAIL_ALREADY_EXISTS');
-    }
-
-    const newUser: User = {
-      id: `user_${Date.now()}`,
-      name: name.trim(),
-      email: email.toLowerCase().trim(),
-      balance: 15000, // Initialize with 15,000 PHP to ensure positive safe balance
-      currency: 'PHP',
-      createdAt: new Date().toISOString(),
-      isGuest: false,
-    };
-
-    storage.set(KEYS.EMAIL, newUser.email);
-    storage.set(KEYS.PASSWORD, password);
-    saveUser(newUser);
-    // Don't auto-login - user needs to login manually after signup
-    setLoggedIn(false);
-    
-    return newUser;
-  } catch (error) {
-    if (error instanceof AuthError) {
-      throw error;
-    }
-    console.error('Error registering user:', error);
-    throw new AuthError('Registration failed', 'REGISTRATION_FAILED');
-  }
+export const saveUser = (user: User): void => {
+  storage.set(KEYS.USER, JSON.stringify(user));
 };
 
-/**
- * Login user by validating email and password
- */
-export const loginUser = (email: string, password: string): User | null => {
-  try {
-    // Validate inputs
-    if (!email || !email.trim()) {
-      throw new AuthError('Email is required', 'EMPTY_EMAIL');
-    }
-    if (!password) {
-      throw new AuthError('Password is required', 'EMPTY_PASSWORD');
-    }
+/* ====================
+   SAFE BALANCE
+==================== */
+export const addToBalance = (amount: number): void => {
+  if (amount <= 0) throw new Error('Invalid amount');
 
-    const storedEmail = storage.getString(KEYS.EMAIL);
-    const storedPassword = storage.getString(KEYS.PASSWORD);
+  const user = getUser();
+  if (!user) throw new Error('No user');
 
-    // Check if account exists
-    if (!storedEmail || !storedPassword) {
-      throw new AuthError('Account doesn\'t exist or password is incorrect', 'LOGIN_FAILED');
-    }
+  user.balance += amount;
+  saveUser(user);
 
-    // Check if email matches
-    const normalizedEmail = email.toLowerCase().trim();
-    if (storedEmail !== normalizedEmail) {
-      throw new AuthError('Account doesn\'t exist or password is incorrect', 'LOGIN_FAILED');
-    }
-
-    // Check if password is correct
-    if (storedPassword !== password) {
-      throw new AuthError('Account doesn\'t exist or password is incorrect', 'LOGIN_FAILED');
-    }
-
-    setLoggedIn(true);
-    return getUser();
-  } catch (error) {
-    if (error instanceof AuthError) {
-      throw error;
-    }
-    console.error('Error logging in user:', error);
-    throw new AuthError('Login failed', 'LOGIN_FAILED');
-  }
+  bumpTotalBalance(amount);
+  recordTransaction('ADD_FUNDS', amount, 'Added funds to safe balance');
 };
 
-/**
- * Check if user is logged in
- */
-export const isLoggedIn = (): boolean => {
-  try {
-    const loggedIn = storage.getBoolean(KEYS.IS_LOGGED_IN);
-    return loggedIn === true;
-  } catch (error) {
-    console.error('Error checking login status:', error);
-    return false;
-  }
+/* ====================
+   POCKETS
+==================== */
+export const getPockets = (): Packet[] => {
+  const data = storage.getString(KEYS.POCKETS);
+  return data ? JSON.parse(data) : [];
 };
 
-/**
- * Set login status
- */
-export const setLoggedIn = (logged: boolean): void => {
-  try {
-    if (typeof logged !== 'boolean') {
-      throw new AuthError('Invalid login status', 'INVALID_LOGIN_STATUS');
-    }
-    storage.set(KEYS.IS_LOGGED_IN, logged);
-  } catch (error) {
-    if (error instanceof AuthError) {
-      throw error;
-    }
-    console.error('Error setting login status:', error);
-    throw new AuthError('Failed to update login status', 'SET_LOGIN_FAILED');
-  }
+export const savePockets = (pockets: Packet[]): void => {
+  storage.set(KEYS.POCKETS, JSON.stringify(pockets));
 };
 
-/**
- * Logout user and clear session
- */
+/* ====================
+   CREATE POCKET
+==================== */
+export const createPocket = (name: string, amount: number): void => {
+  const user = getUser();
+  if (!user) throw new Error('No user');
+  if (amount <= 0) throw new Error('Invalid amount');
+  if (user.balance < amount) throw new Error('Insufficient safe balance');
+
+  const pockets = getPockets();
+  const newPocket: Packet = {
+    id: `pocket_${Date.now()}`,
+    name: name.trim(),
+    amount,
+  };
+
+  savePockets([...pockets, newPocket]);
+
+  user.balance -= amount;
+  saveUser(user);
+
+  updateMostCostlyPocket(newPocket.id, newPocket.name, amount);
+  recordTransaction(
+    'POCKET_CREATE',
+    amount,
+    `Created pocket "${newPocket.name}"`
+  );
+};
+
+/* ====================
+   ADD FUNDS → POCKET
+==================== */
+export const addFundsToPocket = (
+  pocketId: string,
+  amount: number
+): void => {
+  if (amount <= 0) throw new Error('Invalid amount');
+
+  const pockets = getPockets();
+  const index = pockets.findIndex(p => p.id === pocketId);
+  if (index === -1) throw new Error('Pocket not found');
+
+  pockets[index].amount += amount;
+  savePockets(pockets);
+
+  updateMostCostlyPocket(
+    pockets[index].id,
+    pockets[index].name,
+    pockets[index].amount
+  );
+
+  recordTransaction(
+    'POCKET_ADD_FUNDS',
+    amount,
+    `Added funds to pocket "${pockets[index].name}"`
+  );
+};
+
+/* ====================
+   UPDATE POCKET
+==================== */
+export const updatePocket = (
+  pocketId: string,
+  newName: string,
+  newAmount: number
+): void => {
+  const user = getUser();
+  if (!user) throw new Error('No user');
+  if (newAmount < 0) throw new Error('Invalid amount');
+
+  const pockets = getPockets();
+  const index = pockets.findIndex(p => p.id === pocketId);
+  if (index === -1) throw new Error('Pocket not found');
+
+  const diff = newAmount - pockets[index].amount;
+  if (diff > 0 && user.balance < diff)
+    throw new Error('Insufficient safe balance');
+
+  pockets[index] = {
+    ...pockets[index],
+    name: newName.trim(),
+    amount: newAmount,
+  };
+
+  user.balance -= diff;
+  savePockets(pockets);
+  saveUser(user);
+
+  updateMostCostlyPocket(
+    pockets[index].id,
+    pockets[index].name,
+    newAmount
+  );
+};
+
+/* ====================
+   DELETE POCKET
+==================== */
+export const deletePocket = (pocketId: string): void => {
+  const user = getUser();
+  if (!user) throw new Error('No user');
+
+  const pockets = getPockets();
+  const pocket = pockets.find(p => p.id === pocketId);
+  if (!pocket) throw new Error('Pocket not found');
+
+  user.balance += pocket.amount;
+  saveUser(user);
+
+  bumpTotalSpent(pocket.amount);
+  savePockets(pockets.filter(p => p.id !== pocketId));
+
+  recordTransaction(
+    'POCKET_DELETE',
+    pocket.amount,
+    `Deleted pocket "${pocket.name}"`
+  );
+};
+
+/* ====================
+   TRANSFER POCKET → SAFE
+==================== */
+export const transferFunds = (
+  fromPocketId: string,
+  amount: number
+): void => {
+  const user = getUser();
+  if (!user) throw new Error('No user');
+  if (amount <= 0) throw new Error('Invalid amount');
+
+  const pockets = getPockets();
+  const index = pockets.findIndex(p => p.id === fromPocketId);
+  if (index === -1) throw new Error('Pocket not found');
+  if (pockets[index].amount < amount)
+    throw new Error('Insufficient funds');
+
+  pockets[index].amount -= amount;
+  user.balance += amount;
+
+  savePockets(pockets);
+  saveUser(user);
+
+  recordTransaction(
+    'POCKET_TO_SAFE',
+    amount,
+    `Transferred from "${pockets[index].name}" to safe`
+  );
+};
+
+/* ====================
+   SAVINGS
+==================== */
+export const getSavings = (): SavingsGoal[] => {
+  const data = storage.getString(KEYS.SAVINGS);
+  return data ? JSON.parse(data) : [];
+};
+
+export const saveSavings = (savings: SavingsGoal[]): void => {
+  storage.set(KEYS.SAVINGS, JSON.stringify(savings));
+};
+
+/* ====================
+   CREATE SAVINGS GOAL
+==================== */
+export const createSavingsGoal = (
+  name: string,
+  targetAmount: number,
+  startingAmount: number
+): void => {
+  const user = getUser();
+  if (!user) throw new Error('No user');
+  if (targetAmount <= 0) throw new Error('Invalid target');
+  if (startingAmount < 0) throw new Error('Invalid amount');
+  if (user.balance < startingAmount)
+    throw new Error('Insufficient safe balance');
+
+  const savings = getSavings();
+
+  const newGoal: SavingsGoal = {
+    id: `savings_${Date.now()}`,
+    name: name.trim(),
+    targetAmount,
+    currentAmount: startingAmount,
+    createdAt: new Date().toISOString(),
+  };
+
+  saveSavings([...savings, newGoal]);
+
+  user.balance -= startingAmount;
+  saveUser(user);
+
+  updateMostExpensiveSavings(
+    newGoal.id,
+    newGoal.name,
+    newGoal.targetAmount
+  );
+
+  recordTransaction(
+    'SAVINGS_CREATE',
+    startingAmount,
+    `Created savings goal "${newGoal.name}"`
+  );
+};
+
+/* ====================
+   ADD TO SAVINGS
+==================== */
+export const addToSavings = (
+  savingsId: string,
+  amount: number
+): void => {
+  if (amount <= 0) throw new Error('Invalid amount');
+
+  const user = getUser();
+  if (!user) throw new Error('No user');
+  if (user.balance < amount)
+    throw new Error('Insufficient safe balance');
+
+  const savings = getSavings();
+  const index = savings.findIndex(s => s.id === savingsId);
+  if (index === -1) throw new Error('Savings goal not found');
+
+  savings[index].currentAmount += amount;
+  saveSavings(savings);
+
+  user.balance -= amount;
+  saveUser(user);
+
+  recordTransaction(
+    'SAVINGS_ADD',
+    amount,
+    `Added to savings "${savings[index].name}"`
+  );
+};
+
+/* ====================
+   UPDATE SAVINGS GOAL
+==================== */
+export const updateSavingsGoal = (
+  savingsId: string,
+  newName: string,
+  newTargetAmount: number
+): void => {
+  if (newTargetAmount <= 0)
+    throw new Error('Invalid target amount');
+
+  const savings = getSavings();
+  const index = savings.findIndex(s => s.id === savingsId);
+  if (index === -1) throw new Error('Savings goal not found');
+
+  savings[index] = {
+    ...savings[index],
+    name: newName.trim(),
+    targetAmount: newTargetAmount,
+  };
+
+  saveSavings(savings);
+
+  updateMostExpensiveSavings(
+    savings[index].id,
+    savings[index].name,
+    newTargetAmount
+  );
+};
+
+/* ====================
+   DELETE SAVINGS GOAL
+==================== */
+export const deleteSavingsGoal = (
+  savingsId: string
+): void => {
+  const user = getUser();
+  if (!user) throw new Error('No user');
+
+  const savings = getSavings();
+  const goal = savings.find(s => s.id === savingsId);
+  if (!goal) throw new Error('Savings goal not found');
+
+  user.balance += goal.currentAmount;
+  saveUser(user);
+
+  bumpTotalSpent(goal.currentAmount);
+  saveSavings(savings.filter(s => s.id !== savingsId));
+
+  recordTransaction(
+    'SAVINGS_DELETE',
+    goal.currentAmount,
+    `Deleted savings "${goal.name}"`
+  );
+};
+
+/* ====================
+   UPDATE SAVINGS AMOUNT
+==================== */
+export const updateSavingsAmount = (
+  savingsId: string,
+  newAmount: number
+): void => {
+  if (newAmount < 0) throw new Error('Invalid amount');
+
+  const user = getUser();
+  if (!user) throw new Error('No user');
+
+  const savings = getSavings();
+  const index = savings.findIndex(s => s.id === savingsId);
+  if (index === -1) throw new Error('Savings goal not found');
+
+  const diff = newAmount - savings[index].currentAmount;
+  if (diff > 0 && user.balance < diff)
+    throw new Error('Insufficient safe balance');
+
+  savings[index].currentAmount = newAmount;
+  saveSavings(savings);
+
+  user.balance -= diff;
+  saveUser(user);
+
+  recordTransaction(
+    'SAVINGS_EDIT',
+    Math.abs(diff),
+    `Adjusted savings "${savings[index].name}"`
+  );
+};
+
+/* ====================
+   AUTH
+==================== */
+export const registerUser = (
+  email: string,
+  password: string,
+  name: string
+): User => {
+  if (storage.getString(KEYS.EMAIL))
+    throw new Error('Email already registered');
+
+  const user: User = {
+    id: `user_${Date.now()}`,
+    name: name.trim(),
+    email: email.toLowerCase(),
+    balance: 15000,
+    currency: 'PHP',
+    createdAt: new Date(),
+    isGuest: false,
+  };
+
+  storage.set(KEYS.EMAIL, user.email);
+  storage.set(KEYS.PASSWORD, password);
+  storage.set(KEYS.IS_LOGGED_IN, false);
+
+  saveUser(user);
+  savePockets([]);
+  saveSavings([]);
+  saveTransactions([]);
+  saveStats({
+    totalBalanceAllTime: user.balance,
+    totalSpentAllTime: 0,
+  });
+
+  return user;
+};
+
+export const loginUser = (
+  email: string,
+  password: string
+): User => {
+  if (
+    storage.getString(KEYS.EMAIL) !== email.toLowerCase() ||
+    storage.getString(KEYS.PASSWORD) !== password
+  )
+    throw new Error('Invalid credentials');
+
+  storage.set(KEYS.IS_LOGGED_IN, true);
+  return getUser()!;
+};
+
 export const logoutUser = (): void => {
-  try {
-    storage.set(KEYS.IS_LOGGED_IN, false);
-    storage.remove(KEYS.SESSION_TOKEN);
-    // Keep USER, EMAIL, and PASSWORD - only clear session, not account data
-  } catch (error) {
-    console.error('Error logging out user:', error);
-    throw new AuthError('Logout failed', 'LOGOUT_FAILED');
-  }
+  storage.set(KEYS.IS_LOGGED_IN, false);
 };
 
-/**
- * Clear all storage data (for testing purposes)
- */
-export const clearAllStorage = (): void => {
-  try {
-    storage.clearAll();
-    console.log('All storage cleared successfully');
-  } catch (error) {
-    console.error('Error clearing storage:', error);
-    throw new AuthError('Failed to clear storage', 'CLEAR_STORAGE_FAILED');
-  }
+export const isLoggedIn = (): boolean =>
+  storage.getBoolean(KEYS.IS_LOGGED_IN) === true;
+
+/* ====================
+   FUN STATS
+==================== */
+export const getFunStats = () => {
+  const stats = getStats();
+  const user = getUser();
+  const pockets = getPockets();
+  const savings = getSavings();
+
+  return {
+    ...stats,
+    currentTotalBalance:
+      (user?.balance ?? 0) +
+      pockets.reduce((s, p) => s + p.amount, 0) +
+      savings.reduce((s, g) => s + g.currentAmount, 0),
+  };
 };
 
-/**
- * Update user balance
- */
-export const updateUserBalance = (newBalance: number): void => {
-  try {
-    if (typeof newBalance !== 'number' || newBalance < 0) {
-      throw new AuthError('Invalid balance amount', 'INVALID_BALANCE');
-    }
-
-    const user = getUser();
-    if (!user) {
-      throw new AuthError('User not found', 'USER_NOT_FOUND');
-    }
-
-    user.balance = newBalance;
-    saveUser(user);
-  } catch (error) {
-    if (error instanceof AuthError) {
-      throw error;
-    }
-    console.error('Error updating user balance:', error);
-    throw new AuthError('Failed to update balance', 'UPDATE_BALANCE_FAILED');
-  }
-};
-
-/**
- * Clear all data (for testing/reset)
- */
+/* ====================
+   DEV
+==================== */
 export const clearAllData = (): void => {
+  storage.clearAll();
+};
+
+export const resetSafeBalance = (): void => {
+  const user = getUser();
+  if (!user) throw new Error('No user');
+  user.balance = 0;
+  saveUser(user);
+};
+
+export const resetAllPockets = (): void => {
+  savePockets([]);
+};
+
+export const resetAllSavings = (): void => {
+  saveSavings([]);
+};
+
+/* ====================
+   EXPORT / IMPORT
+==================== */
+export const exportAppData = (): string => {
+  const backup: AppBackup = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    data: {
+      user: getUser(),
+      pockets: getPockets(),
+      savings: getSavings(),
+      transactions: getTransactions(),
+      stats: getStats(),
+      email: storage.getString(KEYS.EMAIL),
+      password: storage.getString(KEYS.PASSWORD),
+    },
+  };
+
+  return JSON.stringify(backup, null, 2);
+};
+
+export const importAppData = (json: string): void => {
+  let parsed: AppBackup;
+
   try {
-    storage.clearAll();
-  } catch (error) {
-    console.error('Error clearing all data:', error);
-    throw new AuthError('Failed to clear data', 'CLEAR_DATA_FAILED');
+    parsed = JSON.parse(json);
+  } catch {
+    throw new Error('Invalid backup file');
   }
+
+  if (!parsed?.data || parsed.version !== 1)
+    throw new Error('Unsupported backup format');
+
+  storage.clearAll();
+
+  if (parsed.data.email)
+    storage.set(KEYS.EMAIL, parsed.data.email);
+  if (parsed.data.password)
+    storage.set(KEYS.PASSWORD, parsed.data.password);
+
+  storage.set(KEYS.IS_LOGGED_IN, true);
+
+  if (parsed.data.user)
+    saveUser(parsed.data.user);
+
+  savePockets(parsed.data.pockets ?? []);
+  saveSavings(parsed.data.savings ?? []);
+  saveTransactions(parsed.data.transactions ?? []);
+  saveStats(parsed.data.stats ?? {
+    totalBalanceAllTime: 0,
+    totalSpentAllTime: 0,
+  });
 };

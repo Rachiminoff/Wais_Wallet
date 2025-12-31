@@ -26,3 +26,36 @@ export interface BalanceUpdate {
   description: string;
   timestamp: Date;
 }
+
+export interface SavingsGoal {
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  createdAt: string; // MMKV-friendly
+}
+
+export interface StatsRecord {
+  totalBalanceAllTime: number;
+  totalSpentAllTime: number;
+  mostCostlyPocket?: {
+    id: string;
+    name: string;
+    amount: number;
+  };
+  mostExpensiveSavingsGoal?: {
+    id: string;
+    name: string;
+    targetAmount: number;
+  };
+}
+
+const KEYS = {
+  USER: 'user_data',
+  POCKETS: 'pockets_data',
+  SAVINGS: 'savings_data', // 👈 NEW
+  EMAIL: 'user_email',
+  PASSWORD: 'user_password',
+  IS_LOGGED_IN: 'is_logged_in',
+  STATS: 'stats_records',
+};

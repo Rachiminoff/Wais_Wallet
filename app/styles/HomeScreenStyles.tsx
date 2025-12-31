@@ -175,22 +175,41 @@ const styles = StyleSheet.create({
   actionButtonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 85,
+    gap: 20, // spacing between buttons
   },
-  actionButton: {
+  addFundsButton: {
     flex: 1,
-    backgroundColor: '#a4a8b36E',
+    backgroundColor: '#D3D3D3', // light gray
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.05,
     shadowRadius: 4,
   },
-  actionButtonText: {
-    color: '#ffffffff',
+  transferFundsButton: {
+    flex: 1,
+    backgroundColor: '#D3D3D3', // light gray
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  addFundsButtonText: {
+    color: '#000', // black text for contrast
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  transferFundsButtonText: {
+    color: '#000', // black text for contrast
     fontSize: 16,
     fontWeight: '700',
   },
@@ -213,12 +232,13 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#000000',
     letterSpacing: 0.3,
+    marginBottom: 24,
   },
 
   // POCKETS LIST
   pocketsList: {
     backgroundColor: '#F8F9FA',
-    borderRadius: 16,
+    borderRadius: 24, // increased from 16 for more rounded corners
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#E9ECEF',
@@ -291,7 +311,7 @@ const styles = StyleSheet.create({
   navItemTextActive: {
     fontSize: 12,
     color: '#007AFF',
-  },
+  }
 });
 
 export default styles;

@@ -1,286 +1,214 @@
 import { Dimensions, StyleSheet } from 'react-native';
 
 const { width } = Dimensions.get('window');
+const PRIMARY = '#0f4248';
+const MUTED = '#6c7c7c';
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#fff',
   },
-  
-  // Header
+
+  /* ================= HEADER ================= */
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
-  backButton: {
-    padding: 4,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#0f4248',
-  },
-  headerRightPlaceholder: {
-    width: 32,
-  },
-  
-  // Container
+
+  /* ================= CONTAINER ================= */
   container: {
-    flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 24,
+    paddingTop: 20,
   },
-  
-  // Sections
-  section: {
-    marginBottom: 32,
-  },
+
+  /* ================= SECTION ================= */
   sectionLabel: {
-    fontSize: 14,
-    fontWeight: '900', // Extra bold
-    color: '#0f4248',
+    fontSize: 13,
+    fontWeight: '700',
+    color: PRIMARY,
     marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  sectionLabel1: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#9d9d9d',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  hintText: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
-    fontStyle: 'italic',
-  },
-  
-  // Input Containers
+
+  /* ================= INPUTS ================= */
   inputContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#ddd',
-    borderRadius: 12,
+    borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 18,
+    marginBottom: 20,
     backgroundColor: '#fff',
   },
-  inputContainerSelected: {
-    borderColor: '#0f4248',
-    borderWidth: 2,
-  },
-  
-  // Pocket Input Container
-  pocketInputContainer: {
-    marginTop: 12,
-  },
-  
-  // Dropdown Styles
-  dropdownSelected: {
-    flex: 1,
-  },
+
   dropdownSelectedText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#0f4248',
-    marginBottom: 4,
+    color: PRIMARY,
   },
-  dropdownSelectedAmount: {
-    fontSize: 14,
-    color: '#666',
-  },
-  
-  // Amount Input
+
+  /* ================= AMOUNT ================= */
   amountInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#ddd',
-    borderRadius: 12,
-    backgroundColor: '#fff',
+    borderRadius: 14,
     paddingHorizontal: 16,
+    marginBottom: 20,
   },
+
+  currencySymbol: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: PRIMARY,
+  },
+
   amountInput: {
     flex: 1,
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '700',
-    color: '#0f4248',
-    paddingVertical: 20,
+    color: PRIMARY,
+    paddingVertical: 18,
     paddingLeft: 8,
   },
-  currencySymbol: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#0f4248',
-  },
-  
-  // Note Input
+
+  /* ================= NOTE ================= */
   noteInput: {
     borderWidth: 1,
     borderColor: '#ddd',
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    borderRadius: 14,
+    padding: 16,
     fontSize: 16,
-    color: '#0f4248',
+    color: PRIMARY,
     minHeight: 100,
-  },
-  
-  // Continue Button
-  continueButton: {
-    backgroundColor: '#0f4248',
-    borderRadius: 12,
-    paddingVertical: 18,
-    alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 40,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  continueButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContainer: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '70%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#0f4248',
-  },
-  dropdownList: {
-    paddingHorizontal: 20,
-  },
-  dropdownItem: {
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  dropdownItemContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  dropdownItemName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#0f4248',
-  },
-  dropdownItemAmount: {
-    fontSize: 14,
-    color: '#666',
+    marginBottom: 24,
   },
 
-  // Success Modal Styles
-  successModalContainer: {
+  /* ================= BUTTON ================= */
+  continueButton: {
+    backgroundColor: PRIMARY,
+    borderRadius: 14,
+    paddingVertical: 18,
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+
+  continueButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+
+  /* =========================================================
+     DROPDOWN MODALS
+     ========================================================= */
+  modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'flex-end',
   },
-  successModalContent: {
+
+  dropdownModal: {
     backgroundColor: '#fff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    paddingBottom: 30,
+  },
+
+  dropdownItem: {
+    paddingVertical: 18,
     paddingHorizontal: 24,
-    paddingTop: 32,
+    fontSize: 16,
+    fontWeight: '600',
+    color: PRIMARY,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+
+  dropdownCancel: {
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#d9534f',
+    textAlign: 'center',
+  },
+
+  /* =========================================================
+     SUCCESS MODAL
+     ========================================================= */
+  successModalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 24,
+    paddingTop: 36,
     paddingBottom: 40,
     alignItems: 'center',
   },
-  successIconContainer: {
-    marginBottom: 20,
+
+  successImage: {
+    width: 120,
+    height: 120,
+    resizeMode: 'contain',
+    marginBottom: 8,
   },
+
   successTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
-    color: '#0f4248',
-    marginBottom: 30,
-    textAlign: 'center',
+    color: PRIMARY,
+    marginVertical: 16,
   },
+
+  /* ===== TRANSACTION DETAILS ===== */
   transactionDetailsBox: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 16,
-    padding: 20,
     width: '100%',
-    marginBottom: 30,
-    borderWidth: 1,
-    borderColor: '#E9ECEF',
+    backgroundColor: '#f7f8f9',
+    borderRadius: 16,
+    padding: 18,
+    marginTop: 12,
+    marginBottom: 24,
   },
+
   transactionDetailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 10,
   },
+
   transactionDetailLabel: {
     fontSize: 14,
-    color: '#666',
-    flex: 1,
+    color: MUTED,
   },
+
   transactionDetailValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#0f4248',
-    flex: 1,
-    textAlign: 'right',
+    color: PRIMARY,
   },
-  amountValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#0f4248',
-  },
+
+  /* ===== CTA ===== */
   goHomeButton: {
-    backgroundColor: '#0f4248',
-    borderRadius: 12,
+    backgroundColor: PRIMARY,
+    borderRadius: 14,
     paddingVertical: 16,
-    paddingHorizontal: 32,
-    alignItems: 'center',
     width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    alignItems: 'center',
   },
+
   goHomeButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
     color: '#fff',
+    fontSize: 17,
+    fontWeight: '700',
   },
 });
 
