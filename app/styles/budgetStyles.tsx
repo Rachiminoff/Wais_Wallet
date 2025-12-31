@@ -13,6 +13,7 @@ export default StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 40,
   },
 
   headerTitle: {
@@ -52,6 +53,12 @@ export default StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
+    marginTop: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
 
   cardLabel: {

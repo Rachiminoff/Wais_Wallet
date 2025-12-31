@@ -8,10 +8,14 @@ export default StyleSheet.create({
     backgroundColor: '#fff',
   },
 
+  /* ====================
+     HEADER
+  ==================== */
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
     justifyContent: 'space-between',
   },
 
@@ -21,6 +25,9 @@ export default StyleSheet.create({
     color: PRIMARY,
   },
 
+  /* ====================
+     TABLE HEADER
+  ==================== */
   tableHeader: {
     flexDirection: 'row',
     paddingHorizontal: 20,
@@ -38,9 +45,12 @@ export default StyleSheet.create({
     width: 120,
     fontSize: 13,
     color: '#6c7c7c',
-    textAlign: 'right',
+    textAlign: 'left',
   },
 
+  /* ====================
+     ROWS
+  ==================== */
   row: {
     flexDirection: 'row',
     paddingHorizontal: 20,
@@ -53,6 +63,7 @@ export default StyleSheet.create({
   pocketName: {
     flex: 1,
     fontSize: 14,
+    color: '#111',
   },
 
   amountCell: {
@@ -60,29 +71,12 @@ export default StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    gap: 10,
+    gap: 12,
   },
 
-  amountInput: {
-    textAlign: 'right',
-    minWidth: 60,
-    fontSize: 14,
-  },
-
-  saveButton: {
-    backgroundColor: PRIMARY,
-    paddingVertical: 16,
-    margin: 20,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-
-  saveButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-
-  /* MODALS */
+  /* ====================
+     MODALS
+  ==================== */
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.35)',
@@ -92,6 +86,7 @@ export default StyleSheet.create({
   modalSheet: {
     backgroundColor: '#fff',
     padding: 20,
+    paddingBottom: 28,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
@@ -99,34 +94,63 @@ export default StyleSheet.create({
   modalTitle: {
     fontSize: 17,
     fontWeight: '600',
-    marginBottom: 14,
+    marginBottom: 18,
+    color: '#111',
   },
 
-  warningBox: {
-    backgroundColor: '#f7f7f7',
-    padding: 14,
-    borderRadius: 10,
+  /* ====================
+     INPUTS
+  ==================== */
+  inputLabel: {
+    fontSize: 12,
+    color: '#6c7c7c',
+    marginBottom: 6,
+    marginTop: 10,
   },
 
-  warningText: {
-    fontSize: 13,
-    color: '#444',
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#e3e3e3',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    backgroundColor: '#fff',
   },
 
+  /* ====================
+     INFO / WARNING BOXES
+  ==================== */
   infoBox: {
     backgroundColor: '#f7f7f7',
     padding: 14,
-    borderRadius: 10,
+    borderRadius: 12,
   },
 
   infoText: {
     fontSize: 13,
     color: '#444',
+    lineHeight: 18,
   },
 
+  warningBox: {
+    backgroundColor: '#f7f7f7',
+    padding: 14,
+    borderRadius: 12,
+  },
+
+  warningText: {
+    fontSize: 13,
+    color: '#444',
+    lineHeight: 18,
+  },
+
+  /* ====================
+     MODAL ACTIONS
+  ==================== */
   modalActions: {
     flexDirection: 'row',
-    marginTop: 20,
+    marginTop: 22,
     gap: 12,
   },
 
@@ -134,25 +158,27 @@ export default StyleSheet.create({
     flex: 1,
     backgroundColor: '#e7eeee',
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
   },
 
   cancelText: {
     color: PRIMARY,
     fontWeight: '600',
+    fontSize: 14,
   },
 
   confirmButton: {
     flex: 1,
     backgroundColor: PRIMARY,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
   },
 
   confirmText: {
     color: '#fff',
     fontWeight: '600',
+    fontSize: 14,
   },
 });

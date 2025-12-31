@@ -1,553 +1,523 @@
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import {
-    Alert,
-    Image,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  Image,
+  Modal,
+  Platform,
+  SafeAreaView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+
+import { createMMKV } from 'react-native-mmkv';
+
+import { BottomNavbar } from './components/BottomNavbar'; // ✅ REUSABLE NAVBAR
+import { ThemeWrapper } from './components/ThemeWrapper';
 import { useAuth } from './context/AuthContext';
+import { useTheme } from './context/ThemeContext';
+import styles from './styles/profileStyles';
+
+import {
+  exportAppData,
+  importAppData
+} from './utils/mmkvStorage';
+
+/* ======================
+   STORAGE
+====================== */
+
+const storage = createMMKV();
+const PASSWORD_KEY = 'user_password';
+
+/* ======================
+   PROFILE SCREEN
+====================== */
 
 const Profile: React.FC = () => {
   const router = useRouter();
   const { user: authUser, logout } = useAuth();
+  const {
+    isDarkMode,
+    toggleDarkMode,
+    fontSize,
+    setFontSize,
+    colors,
+  } = useTheme();
 
-  const handleLogout = async (): Promise<void> => {
-    console.log('Logout button pressed');
-    
-    // Use native confirm for web, Alert for mobile
+  /* ======================
+     STATE
+  ====================== */
+
+  const [settingsVisible, setSettingsVisible] = useState(false);
+  const [changePwVisible, setChangePwVisible] = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+
+  const [currentPw, setCurrentPw] = useState('');
+  const [newPw, setNewPw] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+
+  if (!authUser) return null;
+
+  /* ======================
+     HELPERS
+  ====================== */
+
+  const getFontSize = () => {
+    switch (fontSize) {
+      case 'small':
+        return 14;
+      case 'large':
+        return 22;
+      default:
+        return 18;
+    }
+  };
+
+  const getStoredPassword = () =>
+    storage.getString(PASSWORD_KEY);
+
+  const verifyPassword = (pw: string) =>
+    getStoredPassword() === pw;
+
+  /* ======================
+     EXPORT DATA
+  ====================== */
+
+  const handleExport = async () => {
     if (Platform.OS === 'web') {
-      const confirmed = window.confirm('Are you sure you want to logout?');
-      if (!confirmed) {
-        console.log('Logout cancelled');
-        return;
-      }
-    } else {
-      Alert.alert('Logout', 'Are you sure you want to logout?', [
-        { text: 'Cancel', onPress: () => { console.log('Logout cancelled'); }, style: 'cancel' },
-        {
-          text: 'Logout',
-          onPress: async () => {
-            console.log('Logging out...');
-            logout();
-            console.log('Navigating to welcome screen...');
-            router.replace('/');
-          },
-          style: 'destructive',
-        },
-      ]);
+      Alert.alert(
+        'Not supported',
+        'Export is only available on mobile devices.'
+      );
       return;
     }
-    
+
     try {
-      console.log('Logging out...');
-      logout();
-      console.log('Navigating to welcome screen...');
-      router.replace('/');
-    } catch (error) {
-      console.error('Logout error:', error);
+      const FileSystem = await import('expo-file-system');
+      const Sharing = await import('expo-sharing');
+
+      const json = exportAppData();
+      const fileUri =
+        FileSystem.documentDirectory +
+        `finance-backup-${Date.now()}.json`;
+
+      await FileSystem.writeAsStringAsync(fileUri, json, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri);
+      } else {
+        Alert.alert('Exported', fileUri);
+      }
+    } catch (e: any) {
+      Alert.alert('Export failed', e.message);
     }
   };
 
-  // Navigate to other pages
-  const navigateToHome = (): void => {
-    router.push('/home');
+  /* ======================
+     IMPORT DATA
+  ====================== */
+
+  const handleImport = async () => {
+    if (Platform.OS === 'web') {
+      Alert.alert(
+        'Not supported',
+        'Import is only available on mobile devices.'
+      );
+      return;
+    }
+
+    try {
+      const DocumentPicker = await import(
+        'expo-document-picker'
+      );
+      const FileSystem = await import(
+        'expo-file-system'
+      );
+
+      const res =
+        await DocumentPicker.getDocumentAsync({
+          type: 'application/json',
+          copyToCacheDirectory: true,
+        });
+
+      if (res.canceled || !res.assets?.length) return;
+
+      const content =
+        await FileSystem.readAsStringAsync(
+          res.assets[0].uri
+        );
+
+      importAppData(content);
+
+      Alert.alert(
+        'Import successful',
+        'App will restart',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              logout();
+              router.replace('/');
+            },
+          },
+        ]
+      );
+    } catch (e: any) {
+      Alert.alert('Import failed', e.message);
+    }
   };
 
-  const navigateToBudget = (): void => {
-    router.push('/budget');
-  };
+  /* ======================
+     LOGOUT
+  ====================== */
 
-  const navigateToCards = (): void => {
-    router.push('/cards');
-  };
-
-  const navigateToProfile = (): void => {
-    router.push('/profile');
-  };
-
-  if (!authUser) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading...</Text>
-        </View>
-      </SafeAreaView>
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: () => {
+            logout();
+            router.replace('/');
+          },
+        },
+      ]
     );
-  }
+  };
+
+  /* ======================
+     DESTRUCTIVE ACTION
+  ====================== */
+
+  const destructiveAction = (action: () => void) => {
+    if (!verifyPassword(confirmPw)) {
+      Alert.alert('Incorrect password');
+      return;
+    }
+
+    action();
+    setConfirmPw('');
+    setConfirmVisible(false);
+  };
+
+  /* ======================
+     UI
+  ====================== */
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* FOREST HEADER SECTION */}
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: colors.background }}
+    >
+      <ThemeWrapper scroll>
+        {/* ======================
+            HEADER
+        ====================== */}
+
         <View style={styles.forestHeaderContainer}>
-          <Image source={require('../assets/forest-bg.jpg')} style={styles.forestImage} />
-          
-          {/* PROFILE HEADER IN FOREST */}
+          <Image
+            source={require('../assets/forest-bg.jpg')}
+            style={styles.forestImage}
+          />
+
           <View style={styles.forestHeader}>
-            <View style={styles.largeProfileImageContainer}>
-              <Text style={styles.largeProfileImageText}>{authUser.name?.charAt(0).toUpperCase() || 'U'}</Text>
+            <View
+              style={[
+                styles.largeProfileImageContainer,
+                { backgroundColor: colors.card },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.largeProfileImageText,
+                  { color: colors.text },
+                ]}
+              >
+                {authUser.name.charAt(0)}
+              </Text>
             </View>
-            <View style={styles.userNameSection}>
-              <Text style={styles.userName}>{authUser.name || 'User'}</Text>
-              <Icon name="create-outline" size={20} color="#fff" style={styles.editIcon} />
-            </View>
+
+            <Text
+              style={[
+                styles.userName,
+                { fontSize: getFontSize() },
+              ]}
+            >
+              {authUser.name}
+            </Text>
           </View>
         </View>
 
-          {/* PROFILE CONTENT SECTION */}
-          <View style={styles.profileSection}>
-            {/* Dark Theme */}
-            <View style={styles.optionRow}>
-              <View style={styles.optionContent}>
-                <Text style={styles.optionLabel}>Dark Theme</Text>
-              </View>
-              <View style={styles.toggleSwitch}>
-                <View style={styles.toggleSwitchInactive} />
-              </View>
+        {/* ======================
+            PROFILE SETTINGS
+        ====================== */}
+
+        <View
+          style={[
+            styles.profileSection,
+            { backgroundColor: colors.card },
+          ]}
+        >
+          {/* DARK MODE */}
+          <TouchableOpacity
+            style={styles.optionRow}
+            onPress={toggleDarkMode}
+          >
+            <Text
+              style={[
+                styles.optionLabel,
+                { color: colors.text },
+              ]}
+            >
+              Dark Theme
+            </Text>
+
+            <View style={styles.toggleSwitch}>
+              <View
+                style={[
+                  styles.toggleKnob,
+                  isDarkMode && { alignSelf: 'flex-end' },
+                ]}
+              />
             </View>
+          </TouchableOpacity>
 
-            {/* Font Size */}
-            <View style={styles.optionRowSection}>
-              <Text style={styles.sectionTitle}>Font size</Text>
-              <View style={styles.radioGroup}>
-                <View style={styles.radioOption}>
-                  <View style={styles.radioCircle} />
-                  <Text style={styles.radioLabel}>Small</Text>
-                </View>
-                <View style={styles.radioOption}>
-                  <View style={[styles.radioCircle, styles.radioCircleSelected]}>
-                    <View style={styles.radioCircleDot} />
-                  </View>
-                  <Text style={styles.radioLabel}>Medium</Text>
-                </View>
-                <View style={styles.radioOption}>
-                  <View style={styles.radioCircle} />
-                  <Text style={styles.radioLabel}>Large</Text>
-                </View>
-              </View>
-            </View>
+          {/* FONT SIZE */}
+          <View style={styles.optionRowSection}>
+            <Text
+              style={[
+                styles.sectionTitle,
+                { color: colors.subtleText },
+              ]}
+            >
+              Font size
+            </Text>
 
-            {/* Change Password */}
-            <TouchableOpacity style={styles.optionRow}>
-              <Text style={styles.optionLabel}>Change Password</Text>
-              <Icon name="chevron-forward" size={20} color="#C7C7CC" />
-            </TouchableOpacity>
+            {(['small', 'medium', 'large'] as const).map(
+              size => (
+                <TouchableOpacity
+                  key={size}
+                  style={styles.radioOption}
+                  onPress={() => setFontSize(size)}
+                >
+                  <View
+                    style={[
+                      styles.radioCircle,
+                      fontSize === size &&
+                        styles.radioCircleSelected,
+                    ]}
+                  />
+                  <Text style={{ color: colors.text }}>
+                    {size}
+                  </Text>
+                </TouchableOpacity>
+              )
+            )}
+          </View>
 
-            {/* Logout Button */}
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-              <Icon name="log-out-outline" size={20} color="#fff" />
-              <Text style={styles.logoutButtonText}>Logout</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+          {/* ACCOUNT SETTINGS */}
+          <TouchableOpacity
+            style={styles.optionRow}
+            onPress={() => setSettingsVisible(true)}
+          >
+            <Text
+              style={[
+                styles.optionLabel,
+                { color: colors.text },
+              ]}
+            >
+              Account Settings
+            </Text>
+            <Icon
+              name="settings-outline"
+              size={20}
+              color={colors.icon}
+            />
+          </TouchableOpacity>
 
-        {/* BOTTOM NAVBAR */}
-        <View style={styles.bottomNavbar}>
-        <TouchableOpacity 
-          style={styles.navItem} 
-          onPress={navigateToHome}
-        >
-          <View style={styles.navIconContainer}>
-            <Icon name="home-outline" size={22} color="#8E8E93" />
-          </View>
-          <Text style={styles.navItemText}>Home</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem} 
-          onPress={navigateToBudget}
-        >
-          <View style={styles.navIconContainer}>
-            <Icon name="pie-chart-outline" size={22} color="#8E8E93" />
-          </View>
-          <Text style={styles.navItemText}>Budget</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem} 
-          onPress={navigateToCards}
-        >
-          <View style={styles.navIconContainer}>
-            <Icon name="card-outline" size={22} color="#8E8E93" />
-          </View>
-          <Text style={styles.navItemText}>Cards</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem} 
-          onPress={navigateToProfile}
-        >
-          <View style={styles.navIconContainer}>
-            <Icon name="person" size={22} color="#007AFF" />
-          </View>
-          <Text style={styles.navItemTextActive}>Profile</Text>
-        </TouchableOpacity>
+          {/* TRANSACTIONS */}
+          <TouchableOpacity
+            style={styles.optionRow}
+            onPress={() =>
+              router.push('/components/transactions')
+            }
+          >
+            <Text
+              style={[
+                styles.optionLabel,
+                { color: colors.text },
+              ]}
+            >
+              Transaction History
+            </Text>
+            <Icon
+              name="chevron-forward"
+              size={20}
+              color={colors.icon}
+            />
+          </TouchableOpacity>
+
+          {/* LOGOUT */}
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={handleLogout}
+          >
+            <Icon
+              name="log-out-outline"
+              size={20}
+              color="#fff"
+            />
+            <Text style={styles.logoutButtonText}>
+              Logout
+            </Text>
+          </TouchableOpacity>
         </View>
+      </ThemeWrapper>
+
+      {/* ======================
+          ✅ REUSABLE NAVBAR
+      ====================== */}
+
+      <BottomNavbar />
+
+      {/* ======================
+          MODALS (UNCHANGED)
+      ====================== */}
+
+      {/* ACCOUNT SETTINGS */}
+<Modal transparent visible={settingsVisible}>
+  <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
+    <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
+      <Text style={[styles.modalTitle, { color: colors.text }]}>
+        Account Settings
+      </Text>
+
+      <TouchableOpacity
+        style={styles.optionRow}
+        onPress={() => {
+          setSettingsVisible(false);
+          setChangePwVisible(true);
+        }}
+      >
+        <Text style={[styles.optionLabel, { color: colors.text }]}>
+          Change Password
+        </Text>
+      </TouchableOpacity>
+
+      {Platform.OS !== 'web' && (
+        <>
+          <TouchableOpacity style={styles.optionRow} onPress={handleExport}>
+            <Text style={[styles.optionLabel, { color: colors.text }]}>
+              Export Data
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.optionRow} onPress={handleImport}>
+            <Text style={[styles.optionLabel, { color: colors.text }]}>
+              Import Data
+            </Text>
+          </TouchableOpacity>
+        </>
+      )}
+
+      <TouchableOpacity style={styles.dangerButton}>
+        <Text style={[styles.dangerText, { color: colors.dangerText }]}>
+          Clear ALL Data
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.modalCancel}>
+        <Text style={[styles.modalCancelText, { color: colors.text }]}>
+          Close
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
+{/* CHANGE PASSWORD */}
+<Modal transparent visible={changePwVisible}>
+  <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
+    <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
+      <Text style={[styles.modalTitle, { color: colors.text }]}>
+        Change Password
+      </Text>
+
+      <TextInput
+        secureTextEntry
+        placeholder="Current password"
+        placeholderTextColor={colors.muted}
+        style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+        value={currentPw}
+        onChangeText={setCurrentPw}
+      />
+
+      <TextInput
+        secureTextEntry
+        placeholder="New password"
+        placeholderTextColor={colors.muted}
+        style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+        value={newPw}
+        onChangeText={setNewPw}
+      />
+
+      <TouchableOpacity style={styles.primaryButton}>
+        <Text style={[styles.primaryText, { color: colors.primaryText }]}>
+          Save
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.modalCancel}>
+        <Text style={[styles.modalCancelText, { color: colors.text }]}>
+          Cancel
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
+{/* CONFIRM WIPE */}
+<Modal transparent visible={confirmVisible}>
+  <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
+    <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
+      <Text style={[styles.modalTitle, { color: colors.text }]}>
+        Confirm Data Wipe
+      </Text>
+
+      <TextInput
+        secureTextEntry
+        placeholder="Enter password"
+        placeholderTextColor={colors.muted}
+        style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+        value={confirmPw}
+        onChangeText={setConfirmPw}
+      />
+
+      <TouchableOpacity style={styles.dangerButton}>
+        <Text style={[styles.dangerText, { color: colors.dangerText }]}>
+          Delete Everything
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.modalCancel}>
+        <Text style={[styles.modalCancelText, { color: colors.text }]}>
+          Cancel
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#e6e6e6',
-  },
-  safeAreaContent: {
-    flex: 1,
-  },
-  forestBackground: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    style: { width: 100, height: 200 },
-    resizeMode: 'cover',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#e6e6e6',
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  forestHeaderContainer: {
-    position: 'relative',
-    width: '100%',
-    height: 400,
-  },
-  forestImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  forestHeader: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '100%',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 30,
-    paddingBottom: 30,
-    paddingHorizontal: 20,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1a3a3a',
-  },
-  largeProfileImageContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  largeProfileImageText: {
-    fontSize: 40,
-    fontWeight: '700',
-    color: '#000',
-  },
-  userNameSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    marginBottom: 20,
-  },
-  userName: {
-    fontSize: 25,
-    fontWeight: '700',
-    color: '#fff',
-    marginRight: 8,
-  },
-  editIcon: {
-    marginLeft: 4,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#666',
-  },
-  
-  // Profile Name
-  profileName: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 8,
-    letterSpacing: 0.5,
-  },
-  profileEmail: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
-    marginBottom: 4,
-  },
-
-  // Profile Section - 2/3 of page
-  profileSection: {
-    marginHorizontal: 0,
-    marginBottom: 0,
-    marginTop: -50,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 34,
-    borderTopRightRadius: 34,
-    paddingTop: 20,
-    paddingHorizontal: 20,
-    paddingBottom: 100,
-    flex: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 15,
-    elevation: 8,
-  },
-
-  optionRowSection: {
-    marginBottom: 24,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 12,
-  },
-  radioGroup: {
-    gap: 12,
-  },
-  radioOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  radioCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#000',
-    marginRight: 12,
-  },
-  radioCircleSelected: {
-    borderColor: '#000',
-  },
-  radioCircleDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#000',
-    alignSelf: 'center',
-    marginTop: 4,
-  },
-  radioLabel: {
-    fontSize: 14,
-    color: '#000',
-  },
-
-  // Profile Header
-  profileHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-  },
-  profileImageContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  profileImageText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  profileUsername: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
-    marginBottom: 4,
-  },
-  profileEmail: {
-    fontSize: 14,
-    color: '#8E8E93',
-  },
-
-  // Options Section
-  optionsSection: {
-    gap: 12,
-  },
-  optionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-    paddingHorizontal: 0,
-    marginBottom: 16,
-  },
-  optionContent: {
-    flex: 1,
-  },
-  optionLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-  },
-  optionValue: {
-    fontSize: 12,
-    color: '#8E8E93',
-    marginTop: 4,
-  },
-
-  // Toggle Switch
-  toggleSwitch: {
-    width: 50,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#E5E5EA',
-    justifyContent: 'center',
-    paddingHorizontal: 2,
-  },
-  toggleSwitchInactive: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    alignSelf: 'flex-start',
-  },
-
-  // Section
-  section: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1a3a3a',
-    marginBottom: 16,
-  },
-  
-  // Options List
-  optionsList: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 16,
-    padding: 4,
-  },
-  optionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  optionTextContainer: {
-    flex: 1,
-    marginLeft: 16,
-  },
-  optionLabel: {
-    fontSize: 12,
-    color: '#8E8E93',
-    marginBottom: 4,
-  },
-  optionValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1a3a3a',
-  },
-
-  // Logout Button
-  logoutButton: {
-    flexDirection: 'row',
-    backgroundColor: '#DC3545',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#DC3545',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  logoutButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-    marginLeft: 12,
-  },
-
-  // Bottom Navbar
-  bottomNavbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  navItem: {
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  navIconContainer: {
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  navItemText: {
-    fontSize: 12,
-    color: '#8E8E93',
-  },
-  navItemTextActive: {
-    fontSize: 12,
-    color: '#007AFF',
-  },
-});
 
 export default Profile;

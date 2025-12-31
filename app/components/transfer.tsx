@@ -3,13 +3,15 @@ import React, { useEffect, useState } from 'react';
 import {
   Image,
   Modal,
-  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+
+import { ThemeWrapper } from '../components/ThemeWrapper';
+import { useTheme } from '../context/ThemeContext';
 
 import styles from '../styles/transferStyles';
 import { Packet } from '../types';
@@ -19,18 +21,21 @@ import {
   transferFunds,
 } from '../utils/mmkvStorage';
 
-/* ASSETS (CORRECT WAY) */
+/* ASSETS */
 const successOwl = require('../../assets/successOwl.png');
 const unsuccessfulOwl = require('../../assets/unsuccessfulOwl.png');
 
 export default function TransferScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
 
   const [user, setUser] = useState(getUser());
   const [pockets, setPockets] = useState<Packet[]>([]);
-  const [selectedPocket, setSelectedPocket] = useState<Packet | null>(null);
+  const [selectedPocket, setSelectedPocket] =
+    useState<Packet | null>(null);
 
   const [amount, setAmount] = useState('');
+  const [transferredAmount, setTransferredAmount] = useState(0); // ✅ FIX
   const [error, setError] = useState('');
 
   const [showPicker, setShowPicker] = useState(false);
@@ -54,7 +59,8 @@ export default function TransferScreen() {
 
     const parts = cleaned.split('.');
     if (parts.length > 2) {
-      cleaned = parts[0] + '.' + parts.slice(1).join('');
+      cleaned =
+        parts[0] + '.' + parts.slice(1).join('');
     }
 
     setAmount(cleaned);
@@ -77,14 +83,15 @@ export default function TransferScreen() {
         throw new Error('Insufficient pocket balance');
       }
 
-      // ✅ MMKV TRANSFER
       transferFunds(selectedPocket.id, value);
 
+      // ✅ SNAPSHOT values BEFORE clearing input
+      setTransferredAmount(value);
       setTransferDate(new Date().toLocaleDateString());
+
       setShowSuccess(true);
       setAmount('');
 
-      // refresh UI values
       setPockets(getPockets());
       setUser(getUser());
     } catch (err: any) {
@@ -93,172 +100,330 @@ export default function TransferScreen() {
     }
   };
 
-  const numericAmount = Number(amount);
-  const isAmountValid = numericAmount > 0;
+  const isAmountValid = Number(amount) > 0;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <Text style={styles.title}>Transfer</Text>
-
-      {/* FROM */}
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => setShowPicker(true)}
-      >
-        <Text style={styles.label}>From</Text>
-        <View style={styles.row}>
-          <Text style={styles.boldText}>
-            {selectedPocket?.name ?? '(Choose Pocket)'}
-          </Text>
-          <Text style={styles.amountText}>
-            ₱{selectedPocket?.amount.toFixed(2) ?? '0.00'}
-          </Text>
-        </View>
-      </TouchableOpacity>
-
-      {/* TO */}
-      <View style={styles.card}>
-        <Text style={styles.label}>To</Text>
-        <View style={styles.row}>
-          <Text style={styles.boldText}>Safe Balance</Text>
-          <Text style={styles.amountText}>
-            ₱{user?.balance.toFixed(2) ?? '0.00'}
-          </Text>
-        </View>
-      </View>
-
-      {/* AMOUNT */}
-      <View style={styles.inputCard}>
-        <Text style={styles.inputLabel}>Transfer amount</Text>
-        <TextInput
-          style={styles.input}
-          keyboardType="decimal-pad"
-          placeholder="Enter amount"
-          value={amount}
-          onChangeText={handleAmountChange}
-        />
-      </View>
-
-      <TouchableOpacity
+    <ThemeWrapper>
+      <View
         style={[
-          styles.button,
-          !isAmountValid && { opacity: 0.5 },
+          styles.safeArea,
+          { backgroundColor: colors.background },
         ]}
-        disabled={!isAmountValid}
-        onPress={handleTransfer}
       >
-        <Text style={styles.buttonText}>Continue</Text>
-      </TouchableOpacity>
+        <Text
+          style={[styles.title, { color: colors.text }]}
+        >
+          Transfer
+        </Text>
 
-      {/* POCKET PICKER */}
-      <Modal transparent visible={showPicker} animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <Text style={styles.modalTitle}>Choose Pocket</Text>
+        {/* FROM */}
+        <TouchableOpacity
+          style={[
+            styles.card,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+            },
+          ]}
+          onPress={() => setShowPicker(true)}
+        >
+          <Text
+            style={[
+              styles.label,
+              { color: colors.textMuted },
+            ]}
+          >
+            From
+          </Text>
+          <View style={styles.row}>
+            <Text
+              style={[
+                styles.boldText,
+                { color: colors.text },
+              ]}
+            >
+              {selectedPocket?.name ?? '(Choose Pocket)'}
+            </Text>
+            <Text
+              style={[
+                styles.amountText,
+                { color: colors.text },
+              ]}
+            >
+              ₱{selectedPocket?.amount.toFixed(2) ?? '0.00'}
+            </Text>
+          </View>
+        </TouchableOpacity>
 
-            <ScrollView>
-              {pockets.map(p => (
-                <TouchableOpacity
-                  key={p.id}
-                  style={styles.option}
-                  onPress={() => {
-                    setSelectedPocket(p);
-                    setShowPicker(false);
-                  }}
+        {/* TO */}
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.label,
+              { color: colors.textMuted },
+            ]}
+          >
+            To
+          </Text>
+          <View style={styles.row}>
+            <Text
+              style={[
+                styles.boldText,
+                { color: colors.text },
+              ]}
+            >
+              Safe Balance
+            </Text>
+            <Text
+              style={[
+                styles.amountText,
+                { color: colors.text },
+              ]}
+            >
+              ₱{user?.balance.toFixed(2) ?? '0.00'}
+            </Text>
+          </View>
+        </View>
+
+        {/* AMOUNT */}
+        <View
+          style={[
+            styles.inputCard,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.inputLabel,
+              { color: colors.textMuted },
+            ]}
+          >
+            Transfer amount
+          </Text>
+          <TextInput
+            style={[
+              styles.input,
+              { color: colors.text },
+            ]}
+            keyboardType="decimal-pad"
+            placeholder="Enter amount"
+            placeholderTextColor={colors.textMuted}
+            value={amount}
+            onChangeText={handleAmountChange}
+          />
+        </View>
+
+        {/* BUTTON */}
+        <TouchableOpacity
+          style={[
+            styles.button,
+            !isAmountValid && { opacity: 0.5 },
+          ]}
+          disabled={!isAmountValid}
+          onPress={handleTransfer}
+        >
+          <Text style={styles.buttonText}>Continue</Text>
+        </TouchableOpacity>
+
+        {/* POCKET PICKER */}
+        <Modal transparent visible={showPicker}>
+          <View style={styles.modalOverlay}>
+            <View
+              style={[
+                styles.modalSheet,
+                { backgroundColor: colors.card },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.modalTitle,
+                  { color: colors.text },
+                ]}
+              >
+                Choose Pocket
+              </Text>
+
+              <ScrollView>
+                {pockets.map(p => (
+                  <TouchableOpacity
+                    key={p.id}
+                    style={styles.option}
+                    onPress={() => {
+                      setSelectedPocket(p);
+                      setShowPicker(false);
+                    }}
+                  >
+                    <View style={styles.optionRow}>
+                      <Text
+                        style={[
+                          styles.optionName,
+                          { color: colors.text },
+                        ]}
+                      >
+                        {p.name}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.optionAmount,
+                          { color: colors.text },
+                        ]}
+                      >
+                        ₱{p.amount.toFixed(2)}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => setShowPicker(false)}
+              >
+                <Text
+                  style={[
+                    styles.cancelText,
+                    { color: colors.textMuted },
+                  ]}
                 >
-                  <View style={styles.optionRow}>
-                    <Text style={styles.optionName}>{p.name}</Text>
-                    <Text style={styles.optionAmount}>
-                      ₱{p.amount.toFixed(2)}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            <TouchableOpacity
-              style={styles.cancelBtn}
-              onPress={() => setShowPicker(false)}
-            >
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
 
-      {/* SUCCESS */}
-      <Modal transparent visible={showSuccess} animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.successSheet}>
-            <Image source={successOwl} style={styles.owlImage} />
+        {/* SUCCESS */}
+        <Modal transparent visible={showSuccess}>
+          <View style={styles.modalOverlay}>
+            <View
+              style={[
+                styles.successSheet,
+                { backgroundColor: colors.card },
+              ]}
+            >
+              <Image source={successOwl} style={styles.owlImage} />
 
-            <Text style={styles.successTitle}>
-              Transfer Successful!
-            </Text>
+              <Text
+                style={[
+                  styles.successTitle,
+                  { color: colors.text },
+                ]}
+              >
+                Transfer Successful!
+              </Text>
 
-            <View style={styles.infoBox}>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>From</Text>
-                <Text style={styles.infoValue}>
-                  {selectedPocket?.name}
+              <View
+                style={[
+                  styles.infoBox,
+                  { backgroundColor: colors.background },
+                ]}
+              >
+                <View style={styles.infoRow}>
+                  <Text style={[styles.infoLabel, { color: colors.textMuted }]}>
+                    From
+                  </Text>
+                  <Text style={[styles.infoValue, { color: colors.text }]}>
+                    {selectedPocket?.name}
+                  </Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Text style={[styles.infoLabel, { color: colors.textMuted }]}>
+                    To
+                  </Text>
+                  <Text style={[styles.infoValue, { color: colors.text }]}>
+                    Safe Balance
+                  </Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Text style={[styles.infoLabel, { color: colors.textMuted }]}>
+                    Amount
+                  </Text>
+                  <Text style={[styles.infoValue, { color: colors.text }]}>
+                    ₱{transferredAmount.toFixed(2)}
+                  </Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Text style={[styles.infoLabel, { color: colors.textMuted }]}>
+                    Date
+                  </Text>
+                  <Text style={[styles.infoValue, { color: colors.text }]}>
+                    {transferDate}
+                  </Text>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => {
+                  setShowSuccess(false);
+                  router.replace('/home');
+                }}
+              >
+                <Text style={styles.modalButtonText}>
+                  Go to Dashboard
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* ERROR */}
+        <Modal transparent visible={showError}>
+          <View style={styles.modalOverlay}>
+            <View
+              style={[
+                styles.successSheet,
+                { backgroundColor: colors.card },
+              ]}
+            >
+              <Image source={unsuccessfulOwl} style={styles.owlImage} />
+
+              <Text
+                style={[
+                  styles.errorTitle,
+                  { color: colors.text },
+                ]}
+              >
+                Transfer Unsuccessful
+              </Text>
+
+              <View
+                style={[
+                  styles.infoBox,
+                  { backgroundColor: colors.background },
+                ]}
+              >
+                <Text style={{ color: colors.text }}>
+                  {error}
                 </Text>
               </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>To</Text>
-                <Text style={styles.infoValue}>Safe Balance</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Amount</Text>
-                <Text style={styles.infoValue}>
-                  ₱{numericAmount.toFixed(2)}
+
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => setShowError(false)}
+              >
+                <Text style={styles.modalButtonText}>
+                  Try Again
                 </Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Date</Text>
-                <Text style={styles.infoValue}>{transferDate}</Text>
-              </View>
+              </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => {
-                setShowSuccess(false);
-                router.replace('/home');
-              }}
-            >
-              <Text style={styles.modalButtonText}>
-                Go to Dashboard
-              </Text>
-            </TouchableOpacity>
           </View>
-        </View>
-      </Modal>
-
-      {/* ERROR */}
-      <Modal transparent visible={showError} animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.successSheet}>
-            <Image source={unsuccessfulOwl} style={styles.owlImage} />
-
-            <Text style={styles.errorTitle}>
-              Transfer Unsuccessful
-            </Text>
-
-            <View style={styles.infoBox}>
-              <Text>{error}</Text>
-            </View>
-
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => setShowError(false)}
-            >
-              <Text style={styles.modalButtonText}>
-                Try Again
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    </SafeAreaView>
+        </Modal>
+      </View>
+    </ThemeWrapper>
   );
 }

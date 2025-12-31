@@ -1,13 +1,13 @@
 import React, { createContext, ReactNode, useCallback, useEffect, useState } from 'react';
 import {
-    AuthError,
-    getUser,
-    loginUser,
-    logoutUser,
-    registerUser,
-    saveUser,
-    updateUserBalance,
-    User
+  AuthError,
+  getUser,
+  loginUser,
+  logoutUser,
+  registerUser,
+  saveUser,
+  updateUserBalance,
+  User
 } from '../utils/mmkvStorage';
 
 export interface AuthContextType {

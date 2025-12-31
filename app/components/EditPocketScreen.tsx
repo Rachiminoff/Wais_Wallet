@@ -27,6 +27,7 @@ export default function EditPocketScreen() {
   const [selectedPocket, setSelectedPocket] =
     useState<Packet | null>(null);
 
+  const [editedName, setEditedName] = useState('');
   const [editedAmount, setEditedAmount] = useState('');
 
   const [showEditModal, setShowEditModal] = useState(false);
@@ -45,6 +46,7 @@ export default function EditPocketScreen() {
   ==================== */
   const startEdit = (pocket: Packet) => {
     setSelectedPocket(pocket);
+    setEditedName(pocket.name);
     setEditedAmount(String(pocket.amount));
     setShowEditModal(true);
   };
@@ -54,6 +56,11 @@ export default function EditPocketScreen() {
   ==================== */
   const proceedToConfirm = () => {
     const value = Number(editedAmount);
+
+    if (!editedName.trim()) {
+      Alert.alert('Invalid name', 'Pocket name cannot be empty');
+      return;
+    }
 
     if (isNaN(value) || value < 0) {
       Alert.alert('Invalid amount');
@@ -73,7 +80,7 @@ export default function EditPocketScreen() {
     try {
       updatePocket(
         selectedPocket.id,
-        selectedPocket.name,
+        editedName.trim(),
         Number(editedAmount)
       );
 
@@ -117,7 +124,7 @@ export default function EditPocketScreen() {
           <Icon name="arrow-back" size={24} color="#0f3d3e" />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Edit Pocket:</Text>
+        <Text style={styles.headerTitle}>Edit Pocket</Text>
 
         <View style={{ width: 24 }} />
       </View>
@@ -132,14 +139,10 @@ export default function EditPocketScreen() {
       <ScrollView>
         {pockets.map((pocket) => (
           <View key={pocket.id} style={styles.row}>
-            <Text style={styles.pocketName}>
-              {pocket.name}
-            </Text>
+            <Text style={styles.pocketName}>{pocket.name}</Text>
 
             <View style={styles.amountCell}>
-              <Text>
-                ₱{pocket.amount.toLocaleString()}
-              </Text>
+              <Text>₱{pocket.amount.toLocaleString()}</Text>
 
               <TouchableOpacity
                 onPress={() => startEdit(pocket)}
@@ -167,16 +170,29 @@ export default function EditPocketScreen() {
         ))}
       </ScrollView>
 
-      {/* EDIT MODAL */}
+      {/* ====================
+          EDIT MODAL
+      ==================== */}
       <Modal transparent visible={showEditModal} animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalSheet}>
             <Text style={styles.modalTitle}>
-              Edit "{selectedPocket?.name}"
+              Edit Pocket
             </Text>
 
+            {/* NAME */}
+            <Text style={styles.inputLabel}>Pocket Name</Text>
             <TextInput
-              style={styles.amountInput}
+              style={styles.textInput}
+              value={editedName}
+              onChangeText={setEditedName}
+              placeholder="Pocket name"
+            />
+
+            {/* AMOUNT */}
+            <Text style={styles.inputLabel}>Amount</Text>
+            <TextInput
+              style={styles.textInput}
               keyboardType="numeric"
               value={editedAmount}
               onChangeText={setEditedAmount}
@@ -187,25 +203,23 @@ export default function EditPocketScreen() {
                 style={styles.cancelButton}
                 onPress={() => setShowEditModal(false)}
               >
-                <Text style={styles.cancelText}>
-                  Cancel
-                </Text>
+                <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.confirmButton}
                 onPress={proceedToConfirm}
               >
-                <Text style={styles.confirmText}>
-                  Continue
-                </Text>
+                <Text style={styles.confirmText}>Continue</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
 
-      {/* CONFIRM EDIT MODAL */}
+      {/* ====================
+          CONFIRM MODAL
+      ==================== */}
       <Modal transparent visible={showConfirmModal} animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalSheet}>
@@ -215,8 +229,8 @@ export default function EditPocketScreen() {
 
             <View style={styles.infoBox}>
               <Text style={styles.infoText}>
-                This will update your pocket balances
-                immediately. Are you sure?
+                This will update your pocket name and
+                balance immediately. Are you sure?
               </Text>
             </View>
 
@@ -225,25 +239,23 @@ export default function EditPocketScreen() {
                 style={styles.cancelButton}
                 onPress={() => setShowConfirmModal(false)}
               >
-                <Text style={styles.cancelText}>
-                  Cancel
-                </Text>
+                <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.confirmButton}
                 onPress={handleSave}
               >
-                <Text style={styles.confirmText}>
-                  Confirm
-                </Text>
+                <Text style={styles.confirmText}>Confirm</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
 
-      {/* DELETE MODAL (MATCHES DESIGN) */}
+      {/* ====================
+          DELETE MODAL
+      ==================== */}
       <Modal transparent visible={showDeleteModal} animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalSheet}>
@@ -253,11 +265,7 @@ export default function EditPocketScreen() {
 
             <View style={styles.warningBox}>
               <Text style={styles.warningText}>
-                This will{' '}
-                <Text style={{ color: '#d9534f', fontWeight: '700' }}>
-                  delete your pocket permanently
-                </Text>
-                . Are you sure?
+                This will permanently delete this pocket.
               </Text>
             </View>
 
@@ -266,18 +274,14 @@ export default function EditPocketScreen() {
                 style={styles.cancelButton}
                 onPress={() => setShowDeleteModal(false)}
               >
-                <Text style={styles.cancelText}>
-                  Cancel
-                </Text>
+                <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.confirmButton}
                 onPress={handleDelete}
               >
-                <Text style={styles.confirmText}>
-                  Confirm
-                </Text>
+                <Text style={styles.confirmText}>Confirm</Text>
               </TouchableOpacity>
             </View>
           </View>

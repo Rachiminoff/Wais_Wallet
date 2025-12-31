@@ -4,7 +4,6 @@ import {
   Alert,
   Image,
   Modal,
-  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
@@ -12,6 +11,9 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+
+import { ThemeWrapper } from '../components/ThemeWrapper';
+import { useTheme } from '../context/ThemeContext';
 
 import { formatInputAmount, validateAmount } from '../scripts/home';
 import styles from '../styles/addFundsStyle';
@@ -32,6 +34,7 @@ import {
 
 const AddFundsScreen: React.FC = () => {
   const router = useRouter();
+  const { colors } = useTheme();
 
   /* ====================
      STATE
@@ -150,202 +153,367 @@ const AddFundsScreen: React.FC = () => {
      UI
   ==================== */
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* HEADER */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Icon name="arrow-back" size={24} color="#0f4248" />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView style={styles.container}>
-        {/* DESTINATION */}
-        <Text style={styles.sectionLabel}>Add Funds</Text>
-
-        <TouchableOpacity
-          style={styles.inputContainer}
-          onPress={() => setShowDestinationDropdown(true)}
-        >
-          <Text style={styles.dropdownSelectedText}>
-            {selectedDestination === 'safe_balance'
-              ? 'Safe Balance'
-              : selectedPocket
-              ? getPocketName(selectedPocket)
-              : 'Select Pocket'}
-          </Text>
-          <Icon name="chevron-down" size={20} />
-        </TouchableOpacity>
-
-        {/* AMOUNT */}
-        <Text style={styles.sectionLabel}>Amount</Text>
-        <View style={styles.amountInputContainer}>
-          <Text style={styles.currencySymbol}>₱</Text>
-          <TextInput
-            style={styles.amountInput}
-            value={fundAmount}
-            onChangeText={handleFundAmountChange}
-            keyboardType="decimal-pad"
-            placeholder="0.00"
-          />
+    <ThemeWrapper>
+      <View
+        style={[
+          styles.safeArea,
+          { backgroundColor: colors.background },
+        ]}
+      >
+        {/* HEADER */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Icon
+              name="arrow-back"
+              size={24}
+              color={colors.text}
+            />
+          </TouchableOpacity>
         </View>
 
-        {/* NOTE */}
-        <Text style={styles.sectionLabel}>Note (optional)</Text>
-        <TextInput
-          style={styles.noteInput}
-          value={note}
-          onChangeText={setNote}
-          multiline
-        />
-
-        <TouchableOpacity
-          style={styles.continueButton}
-          onPress={handleSubmit}
+        <ScrollView
+          style={[
+            styles.container,
+            { backgroundColor: colors.background },
+          ]}
         >
-          <Text style={styles.continueButtonText}>
-            Continue
+          {/* DESTINATION */}
+          <Text
+            style={[
+              styles.sectionLabel,
+              { color: colors.text },
+            ]}
+          >
+            Add Funds
           </Text>
-        </TouchableOpacity>
-      </ScrollView>
 
-      {/* DESTINATION MODAL */}
-      <Modal transparent visible={showDestinationDropdown}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.dropdownModal}>
-            <TouchableOpacity
-              onPress={() => {
-                setSelectedDestination('safe_balance');
-                setSelectedPocket(null);
-                setShowDestinationDropdown(false);
-              }}
+          <TouchableOpacity
+            style={[
+              styles.inputContainer,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+              },
+            ]}
+            onPress={() => setShowDestinationDropdown(true)}
+          >
+            <Text
+              style={[
+                styles.dropdownSelectedText,
+                { color: colors.text },
+              ]}
             >
-              <Text style={styles.dropdownItem}>
-                Safe Balance
-              </Text>
-            </TouchableOpacity>
+              {selectedDestination === 'safe_balance'
+                ? 'Safe Balance'
+                : selectedPocket
+                ? getPocketName(selectedPocket)
+                : 'Select Pocket'}
+            </Text>
+            <Icon
+              name="chevron-down"
+              size={20}
+              color={colors.text}
+            />
+          </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => {
-                setSelectedDestination('pocket');
-                setShowDestinationDropdown(false);
-                setShowPocketDropdown(true);
-              }}
-            >
-              <Text style={styles.dropdownItem}>
-                Pocket
-              </Text>
-            </TouchableOpacity>
+          {/* AMOUNT */}
+          <Text
+            style={[
+              styles.sectionLabel,
+              { color: colors.text },
+            ]}
+          >
+            Amount
+          </Text>
 
-            <TouchableOpacity
-              onPress={() =>
-                setShowDestinationDropdown(false)
-              }
+          <View
+            style={[
+              styles.amountInputContainer,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.currencySymbol,
+                { color: colors.text },
+              ]}
             >
-              <Text style={styles.dropdownCancel}>
-                Cancel
-              </Text>
-            </TouchableOpacity>
+              ₱
+            </Text>
+            <TextInput
+              style={[
+                styles.amountInput,
+                { color: colors.text },
+              ]}
+              value={fundAmount}
+              onChangeText={handleFundAmountChange}
+              keyboardType="decimal-pad"
+              placeholder="0.00"
+              placeholderTextColor={colors.textMuted}
+            />
           </View>
-        </View>
-      </Modal>
 
-      {/* POCKET MODAL */}
-      <Modal transparent visible={showPocketDropdown}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.dropdownModal}>
-            {pockets.map(p => (
+          {/* NOTE */}
+          <Text
+            style={[
+              styles.sectionLabel,
+              { color: colors.text },
+            ]}
+          >
+            Note (optional)
+          </Text>
+          <TextInput
+            style={[
+              styles.noteInput,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                color: colors.text,
+              },
+            ]}
+            value={note}
+            onChangeText={setNote}
+            multiline
+            placeholderTextColor={colors.textMuted}
+          />
+
+          {/* BUTTON — untouched */}
+          <TouchableOpacity
+            style={styles.continueButton}
+            onPress={handleSubmit}
+          >
+            <Text style={styles.continueButtonText}>
+              Continue
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+
+        {/* DESTINATION MODAL */}
+        <Modal transparent visible={showDestinationDropdown}>
+          <View style={styles.modalOverlay}>
+            <View
+              style={[
+                styles.dropdownModal,
+                { backgroundColor: colors.card },
+              ]}
+            >
               <TouchableOpacity
-                key={p.id}
                 onPress={() => {
-                  setSelectedPocket(p.id);
-                  setShowPocketDropdown(false);
+                  setSelectedDestination('safe_balance');
+                  setSelectedPocket(null);
+                  setShowDestinationDropdown(false);
                 }}
               >
-                <Text style={styles.dropdownItem}>
-                  {p.name}
+                <Text
+                  style={[
+                    styles.dropdownItem,
+                    { color: colors.text },
+                  ]}
+                >
+                  Safe Balance
                 </Text>
               </TouchableOpacity>
-            ))}
 
-            <TouchableOpacity
-              onPress={() =>
-                setShowPocketDropdown(false)
-              }
-            >
-              <Text style={styles.dropdownCancel}>
-                Cancel
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedDestination('pocket');
+                  setShowDestinationDropdown(false);
+                  setShowPocketDropdown(true);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.dropdownItem,
+                    { color: colors.text },
+                  ]}
+                >
+                  Pocket
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() =>
+                  setShowDestinationDropdown(false)
+                }
+              >
+                <Text
+                  style={[
+                    styles.dropdownCancel,
+                    { color: colors.textMuted },
+                  ]}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
 
-      {/* SUCCESS MODAL */}
-      <Modal transparent visible={showSuccessModal}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.successModalContent}>
-            <Image
-              source={require('../../assets/successOwl.png')}
-              style={{
-                width: 120,
-                height: 120,
-                resizeMode: 'contain',
-                marginBottom: 12,
-              }}
-            />
-
-            <Text style={styles.successTitle}>
-              Top up Successful!
-            </Text>
-
-            {successTransaction && (
-              <View style={styles.transactionDetailsBox}>
-                <View style={styles.transactionDetailRow}>
-                  <Text style={styles.transactionDetailLabel}>
-                    Transferred to
-                  </Text>
-                  <Text style={styles.transactionDetailValue}>
-                    {successTransaction.destinationName}
-                  </Text>
-                </View>
-
-                <View style={styles.transactionDetailRow}>
-                  <Text style={styles.transactionDetailLabel}>
-                    Amount
-                  </Text>
-                  <Text style={styles.transactionDetailValue}>
-                    ₱{successTransaction.amount.toLocaleString()}
-                  </Text>
-                </View>
-
-                <View style={styles.transactionDetailRow}>
-                  <Text style={styles.transactionDetailLabel}>
-                    Date
-                  </Text>
-                  <Text style={styles.transactionDetailValue}>
-                    {new Date(
-                      successTransaction.date
-                    ).toLocaleDateString()}
-                  </Text>
-                </View>
-              </View>
-            )}
-
-            <TouchableOpacity
-              style={styles.goHomeButton}
-              onPress={() => {
-                setShowSuccessModal(false);
-                router.replace('/home');
-              }}
+        {/* POCKET MODAL */}
+        <Modal transparent visible={showPocketDropdown}>
+          <View style={styles.modalOverlay}>
+            <View
+              style={[
+                styles.dropdownModal,
+                { backgroundColor: colors.card },
+              ]}
             >
-              <Text style={styles.goHomeButtonText}>
-                Go to Dashboard
-              </Text>
-            </TouchableOpacity>
+              {pockets.map(p => (
+                <TouchableOpacity
+                  key={p.id}
+                  onPress={() => {
+                    setSelectedPocket(p.id);
+                    setShowPocketDropdown(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.dropdownItem,
+                      { color: colors.text },
+                    ]}
+                  >
+                    {p.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+
+              <TouchableOpacity
+                onPress={() =>
+                  setShowPocketDropdown(false)
+                }
+              >
+                <Text
+                  style={[
+                    styles.dropdownCancel,
+                    { color: colors.textMuted },
+                  ]}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
-    </SafeAreaView>
+        </Modal>
+
+        {/* SUCCESS MODAL */}
+        <Modal transparent visible={showSuccessModal}>
+          <View style={styles.modalOverlay}>
+            <View
+              style={[
+                styles.successModalContent,
+                { backgroundColor: colors.card },
+              ]}
+            >
+              <Image
+                source={require('../../assets/successOwl.png')}
+                style={{
+                  width: 120,
+                  height: 120,
+                  resizeMode: 'contain',
+                  marginBottom: 12,
+                }}
+              />
+
+              <Text
+                style={[
+                  styles.successTitle,
+                  { color: colors.text },
+                ]}
+              >
+                Top up Successful!
+              </Text>
+
+              {successTransaction && (
+                <View
+                  style={[
+                    styles.transactionDetailsBox,
+                    { backgroundColor: colors.background },
+                  ]}
+                >
+                  <View style={styles.transactionDetailRow}>
+                    <Text
+                      style={[
+                        styles.transactionDetailLabel,
+                        { color: colors.textMuted },
+                      ]}
+                    >
+                      Transferred to
+                    </Text>
+                    <Text
+                      style={[
+                        styles.transactionDetailValue,
+                        { color: colors.text },
+                      ]}
+                    >
+                      {
+                        successTransaction.destinationName
+                      }
+                    </Text>
+                  </View>
+
+                  <View style={styles.transactionDetailRow}>
+                    <Text
+                      style={[
+                        styles.transactionDetailLabel,
+                        { color: colors.textMuted },
+                      ]}
+                    >
+                      Amount
+                    </Text>
+                    <Text
+                      style={[
+                        styles.transactionDetailValue,
+                        { color: colors.text },
+                      ]}
+                    >
+                      ₱
+                      {successTransaction.amount.toLocaleString()}
+                    </Text>
+                  </View>
+
+                  <View style={styles.transactionDetailRow}>
+                    <Text
+                      style={[
+                        styles.transactionDetailLabel,
+                        { color: colors.textMuted },
+                      ]}
+                    >
+                      Date
+                    </Text>
+                    <Text
+                      style={[
+                        styles.transactionDetailValue,
+                        { color: colors.text },
+                      ]}
+                    >
+                      {new Date(
+                        successTransaction.date
+                      ).toLocaleDateString()}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {/* BUTTON — untouched */}
+              <TouchableOpacity
+                style={styles.goHomeButton}
+                onPress={() => {
+                  setShowSuccessModal(false);
+                  router.replace('/home');
+                }}
+              >
+                <Text style={styles.goHomeButtonText}>
+                  Go to Dashboard
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      </View>
+    </ThemeWrapper>
   );
 };
 

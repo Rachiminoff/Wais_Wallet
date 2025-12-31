@@ -1,6 +1,74 @@
 import { createMMKV } from 'react-native-mmkv';
 import { Packet, User } from '../types';
 
+/* ====================
+   TYPES
+==================== */
+export interface StatsRecord {
+  totalBalanceAllTime: number;
+  totalSpentAllTime: number;
+  mostCostlyPocket?: {
+    id: string;
+    name: string;
+    amount: number;
+  };
+  mostExpensiveSavingsGoal?: {
+    id: string;
+    name: string;
+    targetAmount: number;
+  };
+}
+
+export interface SavingsGoal {
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  createdAt: string;
+}
+
+/* ====================
+   TRANSACTIONS
+==================== */
+export type TransactionType =
+  | 'ADD_FUNDS'
+  | 'POCKET_CREATE'
+  | 'POCKET_DELETE'
+  | 'POCKET_ADD_FUNDS'
+  | 'POCKET_TO_SAFE'
+  | 'SAVINGS_CREATE'
+  | 'SAVINGS_ADD'
+  | 'SAVINGS_DELETE'
+  | 'SAVINGS_EDIT';
+
+export interface Transaction {
+  id: string;
+  type: TransactionType;
+  amount: number;
+  description: string;
+  createdAt: string;
+}
+
+/* ====================
+   BACKUP
+==================== */
+export interface AppBackup {
+  version: number;
+  exportedAt: string;
+  data: {
+    user: User | null;
+    pockets: Packet[];
+    savings: SavingsGoal[];
+    transactions: Transaction[];
+    stats: StatsRecord;
+    email: string | null;
+    password: string | null;
+  };
+}
+
+/* ====================
+   MMKV INSTANCE
+==================== */
 const storage = createMMKV();
 
 /* ====================
@@ -9,9 +77,95 @@ const storage = createMMKV();
 const KEYS = {
   USER: 'user_data',
   POCKETS: 'pockets_data',
+  SAVINGS: 'savings_data',
+  STATS: 'stats_records',
   EMAIL: 'user_email',
   PASSWORD: 'user_password',
   IS_LOGGED_IN: 'is_logged_in',
+  TRANSACTIONS: 'transactions_data',
+};
+
+/* ====================
+   TRANSACTIONS
+==================== */
+export const getTransactions = (): Transaction[] => {
+  const data = storage.getString(KEYS.TRANSACTIONS);
+  return data ? JSON.parse(data) : [];
+};
+
+const saveTransactions = (txs: Transaction[]): void => {
+  storage.set(KEYS.TRANSACTIONS, JSON.stringify(txs));
+};
+
+const recordTransaction = (
+  type: TransactionType,
+  amount: number,
+  description: string
+): void => {
+  const txs = getTransactions();
+
+  const tx: Transaction = {
+    id: `tx_${Date.now()}`,
+    type,
+    amount,
+    description,
+    createdAt: new Date().toISOString(),
+  };
+
+  saveTransactions([tx, ...txs]);
+};
+
+/* ====================
+   STATS
+==================== */
+export const getStats = (): StatsRecord => {
+  const data = storage.getString(KEYS.STATS);
+  return data
+    ? JSON.parse(data)
+    : { totalBalanceAllTime: 0, totalSpentAllTime: 0 };
+};
+
+const saveStats = (stats: StatsRecord): void => {
+  storage.set(KEYS.STATS, JSON.stringify(stats));
+};
+
+const bumpTotalBalance = (amount: number): void => {
+  const stats = getStats();
+  stats.totalBalanceAllTime += amount;
+  saveStats(stats);
+};
+
+const bumpTotalSpent = (amount: number): void => {
+  const stats = getStats();
+  stats.totalSpentAllTime += amount;
+  saveStats(stats);
+};
+
+const updateMostCostlyPocket = (
+  id: string,
+  name: string,
+  amount: number
+): void => {
+  const stats = getStats();
+  if (!stats.mostCostlyPocket || amount > stats.mostCostlyPocket.amount) {
+    stats.mostCostlyPocket = { id, name, amount };
+    saveStats(stats);
+  }
+};
+
+const updateMostExpensiveSavings = (
+  id: string,
+  name: string,
+  targetAmount: number
+): void => {
+  const stats = getStats();
+  if (
+    !stats.mostExpensiveSavingsGoal ||
+    targetAmount > stats.mostExpensiveSavingsGoal.targetAmount
+  ) {
+    stats.mostExpensiveSavingsGoal = { id, name, targetAmount };
+    saveStats(stats);
+  }
 };
 
 /* ====================
@@ -27,7 +181,7 @@ export const saveUser = (user: User): void => {
 };
 
 /* ====================
-   SAFE BALANCE (TOP-UP)
+   SAFE BALANCE
 ==================== */
 export const addToBalance = (amount: number): void => {
   if (amount <= 0) throw new Error('Invalid amount');
@@ -37,6 +191,9 @@ export const addToBalance = (amount: number): void => {
 
   user.balance += amount;
   saveUser(user);
+
+  bumpTotalBalance(amount);
+  recordTransaction('ADD_FUNDS', amount, 'Added funds to safe balance');
 };
 
 /* ====================
@@ -53,37 +210,35 @@ export const savePockets = (pockets: Packet[]): void => {
 
 /* ====================
    CREATE POCKET
-   SAFE → POCKET
 ==================== */
-export const createPocket = (
-  name: string,
-  amount: number
-): void => {
+export const createPocket = (name: string, amount: number): void => {
   const user = getUser();
   if (!user) throw new Error('No user');
-
   if (amount <= 0) throw new Error('Invalid amount');
-  if (user.balance < amount)
-    throw new Error('Insufficient safe balance');
+  if (user.balance < amount) throw new Error('Insufficient safe balance');
 
   const pockets = getPockets();
-
   const newPocket: Packet = {
     id: `pocket_${Date.now()}`,
-    name,
+    name: name.trim(),
     amount,
   };
 
   savePockets([...pockets, newPocket]);
 
-  // MOVE money
   user.balance -= amount;
   saveUser(user);
+
+  updateMostCostlyPocket(newPocket.id, newPocket.name, amount);
+  recordTransaction(
+    'POCKET_CREATE',
+    amount,
+    `Created pocket "${newPocket.name}"`
+  );
 };
 
 /* ====================
    ADD FUNDS → POCKET
-   (TOP-UP)
 ==================== */
 export const addFundsToPocket = (
   pocketId: string,
@@ -92,17 +247,23 @@ export const addFundsToPocket = (
   if (amount <= 0) throw new Error('Invalid amount');
 
   const pockets = getPockets();
-  const index = pockets.findIndex(
-    p => p.id === pocketId
+  const index = pockets.findIndex(p => p.id === pocketId);
+  if (index === -1) throw new Error('Pocket not found');
+
+  pockets[index].amount += amount;
+  savePockets(pockets);
+
+  updateMostCostlyPocket(
+    pockets[index].id,
+    pockets[index].name,
+    pockets[index].amount
   );
 
-  if (index === -1)
-    throw new Error('Pocket not found');
-
-  // ADD money (no SAFE change)
-  pockets[index].amount += amount;
-
-  savePockets(pockets);
+  recordTransaction(
+    'POCKET_ADD_FUNDS',
+    amount,
+    `Added funds to pocket "${pockets[index].name}"`
+  );
 };
 
 /* ====================
@@ -115,67 +276,59 @@ export const updatePocket = (
 ): void => {
   const user = getUser();
   if (!user) throw new Error('No user');
-
-  if (newAmount < 0)
-    throw new Error('Invalid amount');
+  if (newAmount < 0) throw new Error('Invalid amount');
 
   const pockets = getPockets();
-  const index = pockets.findIndex(
-    p => p.id === pocketId
-  );
+  const index = pockets.findIndex(p => p.id === pocketId);
+  if (index === -1) throw new Error('Pocket not found');
 
-  if (index === -1)
-    throw new Error('Pocket not found');
-
-  const oldAmount = pockets[index].amount;
-  const diff = newAmount - oldAmount;
-
-  // Need money from SAFE
+  const diff = newAmount - pockets[index].amount;
   if (diff > 0 && user.balance < diff)
     throw new Error('Insufficient safe balance');
 
   pockets[index] = {
     ...pockets[index],
-    name: newName,
+    name: newName.trim(),
     amount: newAmount,
   };
 
-  // Reallocate only
   user.balance -= diff;
-
   savePockets(pockets);
   saveUser(user);
+
+  updateMostCostlyPocket(
+    pockets[index].id,
+    pockets[index].name,
+    newAmount
+  );
 };
 
 /* ====================
    DELETE POCKET
 ==================== */
-export const deletePocket = (
-  pocketId: string
-): void => {
+export const deletePocket = (pocketId: string): void => {
   const user = getUser();
   if (!user) throw new Error('No user');
 
   const pockets = getPockets();
-  const pocket = pockets.find(
-    p => p.id === pocketId
-  );
+  const pocket = pockets.find(p => p.id === pocketId);
+  if (!pocket) throw new Error('Pocket not found');
 
-  if (!pocket)
-    throw new Error('Pocket not found');
-
-  // Return allocation
   user.balance += pocket.amount;
-
   saveUser(user);
-  savePockets(
-    pockets.filter(p => p.id !== pocketId)
+
+  bumpTotalSpent(pocket.amount);
+  savePockets(pockets.filter(p => p.id !== pocketId));
+
+  recordTransaction(
+    'POCKET_DELETE',
+    pocket.amount,
+    `Deleted pocket "${pocket.name}"`
   );
 };
 
 /* ====================
-   TRANSFER
-   (NO MONEY CREATED)
+   TRANSFER POCKET → SAFE
 ==================== */
 export const transferFunds = (
   fromPocketId: string,
@@ -183,18 +336,11 @@ export const transferFunds = (
 ): void => {
   const user = getUser();
   if (!user) throw new Error('No user');
-
-  if (amount <= 0)
-    throw new Error('Invalid amount');
+  if (amount <= 0) throw new Error('Invalid amount');
 
   const pockets = getPockets();
-  const index = pockets.findIndex(
-    p => p.id === fromPocketId
-  );
-
-  if (index === -1)
-    throw new Error('Pocket not found');
-
+  const index = pockets.findIndex(p => p.id === fromPocketId);
+  if (index === -1) throw new Error('Pocket not found');
   if (pockets[index].amount < amount)
     throw new Error('Insufficient funds');
 
@@ -203,6 +349,187 @@ export const transferFunds = (
 
   savePockets(pockets);
   saveUser(user);
+
+  recordTransaction(
+    'POCKET_TO_SAFE',
+    amount,
+    `Transferred from "${pockets[index].name}" to safe`
+  );
+};
+
+/* ====================
+   SAVINGS
+==================== */
+export const getSavings = (): SavingsGoal[] => {
+  const data = storage.getString(KEYS.SAVINGS);
+  return data ? JSON.parse(data) : [];
+};
+
+export const saveSavings = (savings: SavingsGoal[]): void => {
+  storage.set(KEYS.SAVINGS, JSON.stringify(savings));
+};
+
+/* ====================
+   CREATE SAVINGS GOAL
+==================== */
+export const createSavingsGoal = (
+  name: string,
+  targetAmount: number,
+  startingAmount: number
+): void => {
+  const user = getUser();
+  if (!user) throw new Error('No user');
+  if (targetAmount <= 0) throw new Error('Invalid target');
+  if (startingAmount < 0) throw new Error('Invalid amount');
+  if (user.balance < startingAmount)
+    throw new Error('Insufficient safe balance');
+
+  const savings = getSavings();
+
+  const newGoal: SavingsGoal = {
+    id: `savings_${Date.now()}`,
+    name: name.trim(),
+    targetAmount,
+    currentAmount: startingAmount,
+    createdAt: new Date().toISOString(),
+  };
+
+  saveSavings([...savings, newGoal]);
+
+  user.balance -= startingAmount;
+  saveUser(user);
+
+  updateMostExpensiveSavings(
+    newGoal.id,
+    newGoal.name,
+    newGoal.targetAmount
+  );
+
+  recordTransaction(
+    'SAVINGS_CREATE',
+    startingAmount,
+    `Created savings goal "${newGoal.name}"`
+  );
+};
+
+/* ====================
+   ADD TO SAVINGS
+==================== */
+export const addToSavings = (
+  savingsId: string,
+  amount: number
+): void => {
+  if (amount <= 0) throw new Error('Invalid amount');
+
+  const user = getUser();
+  if (!user) throw new Error('No user');
+  if (user.balance < amount)
+    throw new Error('Insufficient safe balance');
+
+  const savings = getSavings();
+  const index = savings.findIndex(s => s.id === savingsId);
+  if (index === -1) throw new Error('Savings goal not found');
+
+  savings[index].currentAmount += amount;
+  saveSavings(savings);
+
+  user.balance -= amount;
+  saveUser(user);
+
+  recordTransaction(
+    'SAVINGS_ADD',
+    amount,
+    `Added to savings "${savings[index].name}"`
+  );
+};
+
+/* ====================
+   UPDATE SAVINGS GOAL
+==================== */
+export const updateSavingsGoal = (
+  savingsId: string,
+  newName: string,
+  newTargetAmount: number
+): void => {
+  if (newTargetAmount <= 0)
+    throw new Error('Invalid target amount');
+
+  const savings = getSavings();
+  const index = savings.findIndex(s => s.id === savingsId);
+  if (index === -1) throw new Error('Savings goal not found');
+
+  savings[index] = {
+    ...savings[index],
+    name: newName.trim(),
+    targetAmount: newTargetAmount,
+  };
+
+  saveSavings(savings);
+
+  updateMostExpensiveSavings(
+    savings[index].id,
+    savings[index].name,
+    newTargetAmount
+  );
+};
+
+/* ====================
+   DELETE SAVINGS GOAL
+==================== */
+export const deleteSavingsGoal = (
+  savingsId: string
+): void => {
+  const user = getUser();
+  if (!user) throw new Error('No user');
+
+  const savings = getSavings();
+  const goal = savings.find(s => s.id === savingsId);
+  if (!goal) throw new Error('Savings goal not found');
+
+  user.balance += goal.currentAmount;
+  saveUser(user);
+
+  bumpTotalSpent(goal.currentAmount);
+  saveSavings(savings.filter(s => s.id !== savingsId));
+
+  recordTransaction(
+    'SAVINGS_DELETE',
+    goal.currentAmount,
+    `Deleted savings "${goal.name}"`
+  );
+};
+
+/* ====================
+   UPDATE SAVINGS AMOUNT
+==================== */
+export const updateSavingsAmount = (
+  savingsId: string,
+  newAmount: number
+): void => {
+  if (newAmount < 0) throw new Error('Invalid amount');
+
+  const user = getUser();
+  if (!user) throw new Error('No user');
+
+  const savings = getSavings();
+  const index = savings.findIndex(s => s.id === savingsId);
+  if (index === -1) throw new Error('Savings goal not found');
+
+  const diff = newAmount - savings[index].currentAmount;
+  if (diff > 0 && user.balance < diff)
+    throw new Error('Insufficient safe balance');
+
+  savings[index].currentAmount = newAmount;
+  saveSavings(savings);
+
+  user.balance -= diff;
+  saveUser(user);
+
+  recordTransaction(
+    'SAVINGS_EDIT',
+    Math.abs(diff),
+    `Adjusted savings "${savings[index].name}"`
+  );
 };
 
 /* ====================
@@ -213,8 +540,7 @@ export const registerUser = (
   password: string,
   name: string
 ): User => {
-  const existing = storage.getString(KEYS.EMAIL);
-  if (existing === email.toLowerCase())
+  if (storage.getString(KEYS.EMAIL))
     throw new Error('Email already registered');
 
   const user: User = {
@@ -223,7 +549,7 @@ export const registerUser = (
     email: email.toLowerCase(),
     balance: 15000,
     currency: 'PHP',
-    createdAt: new Date().toISOString(),
+    createdAt: new Date(),
     isGuest: false,
   };
 
@@ -233,6 +559,12 @@ export const registerUser = (
 
   saveUser(user);
   savePockets([]);
+  saveSavings([]);
+  saveTransactions([]);
+  saveStats({
+    totalBalanceAllTime: user.balance,
+    totalSpentAllTime: 0,
+  });
 
   return user;
 };
@@ -241,15 +573,11 @@ export const loginUser = (
   email: string,
   password: string
 ): User => {
-  const storedEmail = storage.getString(KEYS.EMAIL);
-  const storedPassword = storage.getString(KEYS.PASSWORD);
-
   if (
-    storedEmail !== email.toLowerCase() ||
-    storedPassword !== password
-  ) {
+    storage.getString(KEYS.EMAIL) !== email.toLowerCase() ||
+    storage.getString(KEYS.PASSWORD) !== password
+  )
     throw new Error('Invalid credentials');
-  }
 
   storage.set(KEYS.IS_LOGGED_IN, true);
   return getUser()!;
@@ -259,8 +587,25 @@ export const logoutUser = (): void => {
   storage.set(KEYS.IS_LOGGED_IN, false);
 };
 
-export const isLoggedIn = (): boolean => {
-  return storage.getBoolean(KEYS.IS_LOGGED_IN) === true;
+export const isLoggedIn = (): boolean =>
+  storage.getBoolean(KEYS.IS_LOGGED_IN) === true;
+
+/* ====================
+   FUN STATS
+==================== */
+export const getFunStats = () => {
+  const stats = getStats();
+  const user = getUser();
+  const pockets = getPockets();
+  const savings = getSavings();
+
+  return {
+    ...stats,
+    currentTotalBalance:
+      (user?.balance ?? 0) +
+      pockets.reduce((s, p) => s + p.amount, 0) +
+      savings.reduce((s, g) => s + g.currentAmount, 0),
+  };
 };
 
 /* ====================
@@ -268,4 +613,73 @@ export const isLoggedIn = (): boolean => {
 ==================== */
 export const clearAllData = (): void => {
   storage.clearAll();
+};
+
+export const resetSafeBalance = (): void => {
+  const user = getUser();
+  if (!user) throw new Error('No user');
+  user.balance = 0;
+  saveUser(user);
+};
+
+export const resetAllPockets = (): void => {
+  savePockets([]);
+};
+
+export const resetAllSavings = (): void => {
+  saveSavings([]);
+};
+
+/* ====================
+   EXPORT / IMPORT
+==================== */
+export const exportAppData = (): string => {
+  const backup: AppBackup = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    data: {
+      user: getUser(),
+      pockets: getPockets(),
+      savings: getSavings(),
+      transactions: getTransactions(),
+      stats: getStats(),
+      email: storage.getString(KEYS.EMAIL),
+      password: storage.getString(KEYS.PASSWORD),
+    },
+  };
+
+  return JSON.stringify(backup, null, 2);
+};
+
+export const importAppData = (json: string): void => {
+  let parsed: AppBackup;
+
+  try {
+    parsed = JSON.parse(json);
+  } catch {
+    throw new Error('Invalid backup file');
+  }
+
+  if (!parsed?.data || parsed.version !== 1)
+    throw new Error('Unsupported backup format');
+
+  storage.clearAll();
+
+  if (parsed.data.email)
+    storage.set(KEYS.EMAIL, parsed.data.email);
+  if (parsed.data.password)
+    storage.set(KEYS.PASSWORD, parsed.data.password);
+
+  storage.set(KEYS.IS_LOGGED_IN, true);
+
+  if (parsed.data.user)
+    saveUser(parsed.data.user);
+
+  savePockets(parsed.data.pockets ?? []);
+  saveSavings(parsed.data.savings ?? []);
+  saveTransactions(parsed.data.transactions ?? []);
+  saveStats(parsed.data.stats ?? {
+    totalBalanceAllTime: 0,
+    totalSpentAllTime: 0,
+  });
 };
