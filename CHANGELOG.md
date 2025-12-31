@@ -13,6 +13,8 @@ All notable changes to this project will be documented here.
 ### Changed
 - Home screen reloads user data when returning from other screens.
 - Add Funds updates the saved user balance properly.
+- Converted the navigation bar into a reusable component for improved modularity.
+- Added statistics and a pie chart to the Home/Dashboard screen.
 
 ### Added
 - Success modal after adding funds, displaying transaction details.
