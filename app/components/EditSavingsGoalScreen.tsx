@@ -14,7 +14,6 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { ThemeWrapper } from '../components/ThemeWrapper';
 import { useTheme } from '../context/ThemeContext';
 import styles from '../styles/editSavingsStyles';
-import { SavingsGoal } from '../types';
 import {
   deleteSavingsGoal,
   getSavings,
@@ -29,9 +28,7 @@ export default function EditSavingsGoalScreen() {
   const { colors, isDark } = useTheme();
 
   const savings = getSavings();
-  const goal: SavingsGoal | undefined = savings.find(
-    g => g.id === id
-  );
+  const goal = savings.find(g => g.id === id);
 
   if (!goal) {
     return (
@@ -44,9 +41,7 @@ export default function EditSavingsGoalScreen() {
             alignItems: 'center',
           }}
         >
-          <Text style={{ color: colors.text }}>
-            Goal not found
-          </Text>
+          <Text style={{ color: colors.text }}>Goal not found</Text>
         </SafeAreaView>
       </ThemeWrapper>
     );
@@ -55,18 +50,11 @@ export default function EditSavingsGoalScreen() {
   const originalAmount = goal.currentAmount;
 
   const [name, setName] = useState(goal.name);
-  const [targetAmount, setTargetAmount] = useState(
-    String(goal.targetAmount)
-  );
-  const [currentAmount, setCurrentAmount] = useState(
-    String(goal.currentAmount)
-  );
+  const [targetAmount, setTargetAmount] = useState(String(goal.targetAmount));
+  const [currentAmount, setCurrentAmount] = useState(String(goal.currentAmount));
 
   const [showConfirm, setShowConfirm] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
-  const [showBalanceWarning, setShowBalanceWarning] =
-    useState(false);
-
   const [errorMessage, setErrorMessage] = useState('');
   const [requiredAmount, setRequiredAmount] = useState(0);
 
@@ -75,30 +63,18 @@ export default function EditSavingsGoalScreen() {
     const target = Number(targetAmount);
     const current = Number(currentAmount);
 
-    if (!name.trim())
-      return setErrorMessage('Goal name is required');
-
-    if (isNaN(target) || target <= 0)
-      return setErrorMessage('Invalid target amount');
-
-    if (isNaN(current) || current < 0)
-      return setErrorMessage('Invalid current amount');
-
-    if (current > target)
-      return setErrorMessage(
-        'Current amount cannot exceed target'
-      );
+    if (!name.trim()) return setErrorMessage('Goal name is required');
+    if (isNaN(target) || target <= 0) return setErrorMessage('Invalid target amount');
+    if (isNaN(current) || current < 0) return setErrorMessage('Invalid current amount');
+    if (current > target) return setErrorMessage('Current amount cannot exceed target');
 
     const user = getUser();
-    if (!user)
-      return setErrorMessage('User not found');
+    if (!user) return setErrorMessage('User not found');
 
     const increase = current - originalAmount;
-
     if (increase > 0 && increase > user.balance) {
       setRequiredAmount(increase);
       setErrorMessage('');
-      setShowBalanceWarning(true);
       return;
     }
 
@@ -110,7 +86,6 @@ export default function EditSavingsGoalScreen() {
   const handleSave = () => {
     updateSavingsGoal(goal.id, name.trim(), Number(targetAmount));
     updateSavingsAmount(goal.id, Number(currentAmount));
-
     setShowConfirm(false);
     router.back();
   };
@@ -131,13 +106,16 @@ export default function EditSavingsGoalScreen() {
         ]}
       >
         {/* ================= HEADER ================= */}
-        <View style={styles.header}>
+        <View
+          style={[
+            styles.header,
+            {
+              backgroundColor: colors.background, // ✅ FIX
+            },
+          ]}
+        >
           <TouchableOpacity onPress={() => router.back()}>
-            <Icon
-              name="arrow-back"
-              size={24}
-              color={colors.text}
-            />
+            <Icon name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
 
           <Text
@@ -186,32 +164,44 @@ export default function EditSavingsGoalScreen() {
           <Text style={[styles.label, { color: colors.muted }]}>
             Target Amount
           </Text>
-          <View style={styles.currencyInput}>
-            <Text style={{ color: colors.text }}>₱</Text>
+          <View
+            style={[
+              styles.currencyInput,
+              {
+                backgroundColor: colors.card, // ✅ FIX
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Text style={{ color: colors.muted, marginRight: 6 }}>₱</Text>
             <TextInput
-              style={[
-                styles.inputInner,
-                { color: colors.text },
-              ]}
+              style={[styles.inputInner, { color: colors.text }]}
               keyboardType="numeric"
               value={targetAmount}
               onChangeText={setTargetAmount}
+              placeholderTextColor={colors.muted}
             />
           </View>
 
           <Text style={[styles.label, { color: colors.muted }]}>
             Current Amount
           </Text>
-          <View style={styles.currencyInput}>
-            <Text style={{ color: colors.text }}>₱</Text>
+          <View
+            style={[
+              styles.currencyInput,
+              {
+                backgroundColor: colors.card, // ✅ FIX
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Text style={{ color: colors.muted, marginRight: 6 }}>₱</Text>
             <TextInput
-              style={[
-                styles.inputInner,
-                { color: colors.text },
-              ]}
+              style={[styles.inputInner, { color: colors.text }]}
               keyboardType="numeric"
               value={currentAmount}
               onChangeText={setCurrentAmount}
+              placeholderTextColor={colors.muted}
             />
           </View>
 
@@ -223,7 +213,12 @@ export default function EditSavingsGoalScreen() {
         </View>
 
         {/* ================= FOOTER ================= */}
-        <View style={styles.footer}>
+        <View
+          style={[
+            styles.footer,
+            { backgroundColor: colors.background }, // ✅ FIX
+          ]}
+        >
           <TouchableOpacity
             style={[
               styles.cancelButton,
@@ -242,7 +237,7 @@ export default function EditSavingsGoalScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* ================= CONFIRM SAVE ================= */}
+        {/* ================= CONFIRM MODAL ================= */}
         <Modal transparent visible={showConfirm} animationType="slide">
           <View style={styles.sheetOverlay}>
             <View
@@ -256,12 +251,7 @@ export default function EditSavingsGoalScreen() {
                 style={styles.sheetImage}
               />
 
-              <Text
-                style={[
-                  styles.sheetTitle,
-                  { color: colors.text },
-                ]}
-              >
+              <Text style={[styles.sheetTitle, { color: colors.text }]}>
                 Confirm Changes
               </Text>
 
@@ -269,36 +259,28 @@ export default function EditSavingsGoalScreen() {
                 style={styles.sheetButton}
                 onPress={handleSave}
               >
-                <Text style={styles.sheetButtonText}>
-                  Confirm
-                </Text>
+                <Text style={styles.sheetButtonText}>Confirm</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => setShowConfirm(false)}
                 style={{ marginTop: 14 }}
               >
-                <Text style={{ color: colors.muted }}>
-                  Cancel
-                </Text>
+                <Text style={{ color: colors.muted }}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </View>
         </Modal>
 
-        {/* ================= DELETE BOTTOM SHEET ================= */}
+        {/* ================= DELETE MODAL ================= */}
         <Modal transparent visible={showDelete} animationType="slide">
           <View style={styles.sheetOverlay}>
             <View
               style={[
                 styles.sheet,
-                {
-                  backgroundColor: colors.card,
-                  paddingHorizontal: 24,
-                },
+                { backgroundColor: colors.card, paddingHorizontal: 24 },
               ]}
             >
-              {/* TITLE */}
               <Text
                 style={{
                   fontSize: 20,
@@ -311,15 +293,12 @@ export default function EditSavingsGoalScreen() {
                 Delete “{goal.name}”?
               </Text>
 
-              {/* WARNING BOX */}
               <View
                 style={{
                   backgroundColor: isDark ? '#1f2933' : '#f3f4f6',
                   borderRadius: 18,
-                  paddingVertical: 18,
-                  paddingHorizontal: 20,
+                  padding: 18,
                   marginBottom: 28,
-                  width: '100%',
                 }}
               >
                 <Text
@@ -327,32 +306,17 @@ export default function EditSavingsGoalScreen() {
                     color: colors.text,
                     textAlign: 'center',
                     lineHeight: 22,
-                    fontSize: 14,
                   }}
                 >
                   This will{' '}
-                  <Text
-                    style={{
-                      color: '#d9534f',
-                      fontWeight: '700',
-                    }}
-                  >
+                  <Text style={{ color: '#d9534f', fontWeight: '700' }}>
                     delete your savings goal permanently.
-                  </Text>{' '}
-                  {'\n'}
-                  Are you sure?
+                  </Text>
+                  {'\n'}Are you sure?
                 </Text>
               </View>
 
-              {/* ACTIONS */}
-              <View
-                style={{
-                  flexDirection: 'row',
-                  width: '100%',      // ✅ REQUIRED
-                  gap: 14,
-                }}
-              >
-                {/* CANCEL */}
+              <View style={{ flexDirection: 'row', gap: 14 }}>
                 <TouchableOpacity
                   style={{
                     flex: 1,
@@ -360,24 +324,14 @@ export default function EditSavingsGoalScreen() {
                     paddingVertical: 16,
                     borderRadius: 20,
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    minHeight: 52,
                   }}
                   onPress={() => setShowDelete(false)}
-                  activeOpacity={0.85}
                 >
-                  <Text
-                    style={{
-                      color: colors.text,
-                      fontWeight: '600',
-                      fontSize: 15,
-                    }}
-                  >
+                  <Text style={{ color: colors.text, fontWeight: '600' }}>
                     Cancel
                   </Text>
                 </TouchableOpacity>
 
-                {/* CONFIRM */}
                 <TouchableOpacity
                   style={{
                     flex: 1,
@@ -385,19 +339,10 @@ export default function EditSavingsGoalScreen() {
                     paddingVertical: 16,
                     borderRadius: 20,
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    minHeight: 52,
                   }}
                   onPress={handleDelete}
-                  activeOpacity={0.85}
                 >
-                  <Text
-                    style={{
-                      color: '#ffffff',
-                      fontWeight: '700',
-                      fontSize: 15,
-                    }}
-                  >
+                  <Text style={{ color: '#fff', fontWeight: '700' }}>
                     Confirm
                   </Text>
                 </TouchableOpacity>

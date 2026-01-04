@@ -74,13 +74,13 @@ export function BottomNavbar() {
       />
 
       <NavItem
-        label="My Expenses"
+        label="Expenses"
         route="/cards"
         icon="card-outline"
       />
 
       <NavItem
-        label="Savings Goals"
+        label="Savings"
         route="/savings"
         customIcon={(color) => (
           <MaterialCommunityIcons
@@ -92,7 +92,7 @@ export function BottomNavbar() {
       />
 
       <NavItem
-        label="My Profile"
+        label="Profile"
         route="/profile"
         icon="person-outline"
       />

@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
+import { useTheme } from '../context/ThemeContext';
 import styles from '../styles/editPocketStyles';
 import { Packet } from '../types';
 import {
@@ -22,6 +23,7 @@ import {
 
 export default function EditPocketScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
 
   const [pockets, setPockets] = useState<Packet[]>([]);
   const [selectedPocket, setSelectedPocket] =
@@ -117,32 +119,87 @@ export default function EditPocketScreen() {
      UI
   ==================== */
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView
+      style={[
+        styles.safeArea,
+        { backgroundColor: colors.background },
+      ]}
+    >
       {/* HEADER */}
-      <View style={styles.header}>
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: colors.card },
+        ]}
+      >
         <TouchableOpacity onPress={() => router.back()}>
-          <Icon name="arrow-back" size={24} color="#0f3d3e" />
+          <Icon
+            name="arrow-back"
+            size={24}
+            color={colors.text}
+          />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Edit Pocket</Text>
+        <Text
+          style={[
+            styles.headerTitle,
+            { color: colors.text },
+          ]}
+        >
+          Edit Pocket
+        </Text>
 
         <View style={{ width: 24 }} />
       </View>
 
       {/* TABLE HEADER */}
-      <View style={styles.tableHeader}>
-        <Text style={styles.columnLeft}>Pocket Name</Text>
-        <Text style={styles.columnRight}>Amount</Text>
+      <View
+        style={[
+          styles.tableHeader,
+          { backgroundColor: colors.card },
+        ]}
+      >
+        <Text
+          style={[
+            styles.columnLeft,
+            { color: colors.muted },
+          ]}
+        >
+          Pocket Name
+        </Text>
+        <Text
+          style={[
+            styles.columnRight,
+            { color: colors.muted },
+          ]}
+        >
+          Amount
+        </Text>
       </View>
 
       {/* POCKET LIST */}
       <ScrollView>
-        {pockets.map((pocket) => (
-          <View key={pocket.id} style={styles.row}>
-            <Text style={styles.pocketName}>{pocket.name}</Text>
+        {pockets.map(pocket => (
+          <View
+            key={pocket.id}
+            style={[
+              styles.row,
+              { backgroundColor: colors.card },
+            ]}
+          >
+            <Text
+              style={[
+                styles.pocketName,
+                { color: colors.text },
+              ]}
+            >
+              {pocket.name}
+            </Text>
 
             <View style={styles.amountCell}>
-              <Text>₱{pocket.amount.toLocaleString()}</Text>
+              <Text style={{ color: colors.text }}>
+                ₱{pocket.amount.toLocaleString()}
+              </Text>
 
               <TouchableOpacity
                 onPress={() => startEdit(pocket)}
@@ -151,7 +208,7 @@ export default function EditPocketScreen() {
                 <Icon
                   name="pencil-outline"
                   size={18}
-                  color="#6c7c7c"
+                  color={colors.muted}
                 />
               </TouchableOpacity>
 
@@ -162,7 +219,7 @@ export default function EditPocketScreen() {
                 <Icon
                   name="trash-outline"
                   size={18}
-                  color="#d9534f"
+                  color="red"
                 />
               </TouchableOpacity>
             </View>
@@ -173,26 +230,65 @@ export default function EditPocketScreen() {
       {/* ====================
           EDIT MODAL
       ==================== */}
-      <Modal transparent visible={showEditModal} animationType="slide">
+      <Modal transparent visible={showEditModal} animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <Text style={styles.modalTitle}>
+          <View
+            style={[
+              styles.modalSheet,
+              { backgroundColor: colors.card },
+            ]}
+          >
+            <Text
+              style={[
+                styles.modalTitle,
+                { color: colors.text },
+              ]}
+            >
               Edit Pocket
             </Text>
 
-            {/* NAME */}
-            <Text style={styles.inputLabel}>Pocket Name</Text>
+            <Text
+              style={[
+                styles.inputLabel,
+                { color: colors.muted },
+              ]}
+            >
+              Pocket Name
+            </Text>
+
             <TextInput
-              style={styles.textInput}
+              style={[
+                styles.textInput,
+                {
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                  borderColor: colors.border,
+                },
+              ]}
               value={editedName}
               onChangeText={setEditedName}
               placeholder="Pocket name"
+              placeholderTextColor={colors.muted}
             />
 
-            {/* AMOUNT */}
-            <Text style={styles.inputLabel}>Amount</Text>
+            <Text
+              style={[
+                styles.inputLabel,
+                { color: colors.muted },
+              ]}
+            >
+              Amount
+            </Text>
+
             <TextInput
-              style={styles.textInput}
+              style={[
+                styles.textInput,
+                {
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                  borderColor: colors.border,
+                },
+              ]}
               keyboardType="numeric"
               value={editedAmount}
               onChangeText={setEditedAmount}
@@ -203,14 +299,23 @@ export default function EditPocketScreen() {
                 style={styles.cancelButton}
                 onPress={() => setShowEditModal(false)}
               >
-                <Text style={styles.cancelText}>Cancel</Text>
+                <Text
+                  style={[
+                    styles.cancelText,
+                    { color: colors.muted },
+                  ]}
+                >
+                  Cancel
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.confirmButton}
                 onPress={proceedToConfirm}
               >
-                <Text style={styles.confirmText}>Continue</Text>
+                <Text style={styles.confirmText}>
+                  Continue
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -220,15 +325,35 @@ export default function EditPocketScreen() {
       {/* ====================
           CONFIRM MODAL
       ==================== */}
-      <Modal transparent visible={showConfirmModal} animationType="slide">
+      <Modal transparent visible={showConfirmModal} animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <Text style={styles.modalTitle}>
+          <View
+            style={[
+              styles.modalSheet,
+              { backgroundColor: colors.card },
+            ]}
+          >
+            <Text
+              style={[
+                styles.modalTitle,
+                { color: colors.text },
+              ]}
+            >
               Confirm Changes
             </Text>
 
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>
+            <View
+              style={[
+                styles.infoBox,
+                { backgroundColor: colors.background },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.infoText,
+                  { color: colors.text },
+                ]}
+              >
                 This will update your pocket name and
                 balance immediately. Are you sure?
               </Text>
@@ -239,14 +364,23 @@ export default function EditPocketScreen() {
                 style={styles.cancelButton}
                 onPress={() => setShowConfirmModal(false)}
               >
-                <Text style={styles.cancelText}>Cancel</Text>
+                <Text
+                  style={[
+                    styles.cancelText,
+                    { color: colors.muted },
+                  ]}
+                >
+                  Cancel
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.confirmButton}
                 onPress={handleSave}
               >
-                <Text style={styles.confirmText}>Confirm</Text>
+                <Text style={styles.confirmText}>
+                  Confirm
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -256,15 +390,35 @@ export default function EditPocketScreen() {
       {/* ====================
           DELETE MODAL
       ==================== */}
-      <Modal transparent visible={showDeleteModal} animationType="slide">
+      <Modal transparent visible={showDeleteModal} animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <Text style={styles.modalTitle}>
+          <View
+            style={[
+              styles.modalSheet,
+              { backgroundColor: colors.card },
+            ]}
+          >
+            <Text
+              style={[
+                styles.modalTitle,
+                { color: colors.text },
+              ]}
+            >
               Delete "{selectedPocket?.name}"?
             </Text>
 
-            <View style={styles.warningBox}>
-              <Text style={styles.warningText}>
+            <View
+              style={[
+                styles.warningBox,
+                { backgroundColor: colors.background },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.warningText,
+                  { color: colors.text },
+                ]}
+              >
                 This will permanently delete this pocket.
               </Text>
             </View>
@@ -274,14 +428,23 @@ export default function EditPocketScreen() {
                 style={styles.cancelButton}
                 onPress={() => setShowDeleteModal(false)}
               >
-                <Text style={styles.cancelText}>Cancel</Text>
+                <Text
+                  style={[
+                    styles.cancelText,
+                    { color: colors.muted },
+                  ]}
+                >
+                  Cancel
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.confirmButton}
                 onPress={handleDelete}
               >
-                <Text style={styles.confirmText}>Confirm</Text>
+                <Text style={styles.confirmText}>
+                  Confirm
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
