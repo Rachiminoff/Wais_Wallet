@@ -32,6 +32,7 @@ export interface SavingsGoal {
 ==================== */
 export type TransactionType =
   | 'ADD_FUNDS'
+  | 'SUBTRACT_FUNDS'
   | 'POCKET_CREATE'
   | 'POCKET_DELETE'
   | 'POCKET_ADD_FUNDS'
@@ -181,6 +182,21 @@ export const saveUser = (user: User): void => {
 };
 
 /* ====================
+   TOTAL BALANCE (SOURCE OF TRUTH)
+==================== */
+export const getCurrentTotalBalance = (): number => {
+  const user = getUser();
+  const pockets = getPockets();
+  const savings = getSavings();
+
+  return (
+    (user?.balance ?? 0) +
+    pockets.reduce((sum, p) => sum + (p.amount || 0), 0) +
+    savings.reduce((sum, s) => sum + (s.currentAmount || 0), 0)
+  );
+};
+
+/* ====================
    SAFE BALANCE
 ==================== */
 export const addToBalance = (amount: number): void => {
@@ -194,6 +210,49 @@ export const addToBalance = (amount: number): void => {
 
   bumpTotalBalance(amount);
   recordTransaction('ADD_FUNDS', amount, 'Added funds to safe balance');
+};
+
+/* ====================
+   SUBTRACT FUNDS (SAFE + TOTAL VALIDATION)
+==================== */
+export const subtractFromBalance = (amount: number): void => {
+  if (amount <= 0) throw new Error('Invalid amount');
+
+  const user = getUser();
+  if (!user) throw new Error('No user');
+
+  const pockets = getPockets();
+  const savings = getSavings();
+
+  const totalPocketBalance = pockets.reduce(
+    (sum, p) => sum + (p.amount || 0),
+    0
+  );
+
+  const totalSavingsBalance = savings.reduce(
+    (sum, s) => sum + (s.currentAmount || 0),
+    0
+  );
+
+  const totalAvailable =
+    user.balance + totalPocketBalance + totalSavingsBalance;
+
+  if (amount > totalAvailable)
+    throw new Error('You cannot subtract this amount because it would cause your total balance to be lower than the combined amount in your pockets and savings.'
+);
+  if (amount > user.balance)
+    throw new Error('Insufficient safe balance');
+
+  user.balance -= amount;
+  saveUser(user);
+
+  bumpTotalSpent(amount);
+
+  recordTransaction(
+    'SUBTRACT_FUNDS',
+    amount,
+    'Spent from safe balance'
+  );
 };
 
 /* ====================

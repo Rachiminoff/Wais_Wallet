@@ -19,6 +19,7 @@ export default function RootLayout() {
           <Stack.Screen name="profile" options={{ headerShown: false }} />
           <Stack.Screen name="cards" options={{ headerShown: false }} />
           <Stack.Screen name="BudgetScreen" options={{ headerShown: false }} />
+          <Stack.Screen name="savings" options={{ headerShown: false }} />
 
           {/* Components */}
           <Stack.Screen name="components/addFunds" options={{ headerShown: false }} />
@@ -29,9 +30,8 @@ export default function RootLayout() {
           <Stack.Screen name="components/AddToSavingsScreen" options={{ headerShown: false }} />
           <Stack.Screen name="components/EditSavingsGoalScreen" options={{ headerShown: false }} />
           <Stack.Screen name="components/transactions" options={{ headerShown: false }} />
-
-          {/* Other Screens */}
-          <Stack.Screen name="savings" options={{ headerShown: false }} />
+          <Stack.Screen name="components/faq" options={{ headerShown: false }} />
+          <Stack.Screen name="components/about" options={{ headerShown: false }} />
         </Stack>
 
         <StatusBar style="dark" />

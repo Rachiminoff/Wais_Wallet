@@ -1,8 +1,10 @@
 import { Dimensions, StyleSheet } from 'react-native';
 
 const { width } = Dimensions.get('window');
+
 const PRIMARY = '#0f4248';
 const MUTED = '#6c7c7c';
+const DANGER = '#d9534f';
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -54,6 +56,12 @@ const styles = StyleSheet.create({
     color: PRIMARY,
   },
 
+  dropdownSelectedTextDanger: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: DANGER,
+  },
+
   /* ================= AMOUNT ================= */
   amountInputContainer: {
     flexDirection: 'row',
@@ -63,6 +71,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 16,
     marginBottom: 20,
+    backgroundColor: '#fff',
   },
 
   currencySymbol: {
@@ -71,11 +80,26 @@ const styles = StyleSheet.create({
     color: PRIMARY,
   },
 
+  currencySymbolDanger: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: DANGER,
+  },
+
   amountInput: {
     flex: 1,
     fontSize: 28,
     fontWeight: '700',
     color: PRIMARY,
+    paddingVertical: 18,
+    paddingLeft: 8,
+  },
+
+  amountInputDanger: {
+    flex: 1,
+    fontSize: 28,
+    fontWeight: '700',
+    color: DANGER,
     paddingVertical: 18,
     paddingLeft: 8,
   },
@@ -95,6 +119,14 @@ const styles = StyleSheet.create({
   /* ================= BUTTON ================= */
   continueButton: {
     backgroundColor: PRIMARY,
+    borderRadius: 14,
+    paddingVertical: 18,
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+
+  continueButtonDanger: {
+    backgroundColor: DANGER,
     borderRadius: 14,
     paddingVertical: 18,
     alignItems: 'center',
@@ -133,12 +165,22 @@ const styles = StyleSheet.create({
     borderBottomColor: '#f0f0f0',
   },
 
+  dropdownItemDanger: {
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+    fontSize: 16,
+    fontWeight: '700',
+    color: DANGER,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+
   dropdownCancel: {
     paddingVertical: 18,
     paddingHorizontal: 24,
     fontSize: 16,
     fontWeight: '700',
-    color: '#d9534f',
+    color: DANGER,
     textAlign: 'center',
   },
 
@@ -169,6 +211,13 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
 
+  successTitleDanger: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: DANGER,
+    marginVertical: 16,
+  },
+
   /* ===== TRANSACTION DETAILS ===== */
   transactionDetailsBox: {
     width: '100%',
@@ -194,6 +243,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: PRIMARY,
+  },
+
+  transactionDetailValueDanger: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: DANGER,
   },
 
   /* ===== CTA ===== */

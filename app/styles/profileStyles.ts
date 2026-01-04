@@ -7,11 +7,7 @@ export default StyleSheet.create({
 
   safeArea: {
     flex: 1,
-    backgroundColor: '#e6e6e6',
-  },
-
-  scrollContent: {
-    flexGrow: 1,
+    backgroundColor: '#F2F3F5',
   },
 
   /* =====================
@@ -21,7 +17,7 @@ export default StyleSheet.create({
   forestHeaderContainer: {
     position: 'relative',
     width: '100%',
-    height: 380,
+    height: 360,
   },
 
   forestImage: {
@@ -33,34 +29,30 @@ export default StyleSheet.create({
 
   forestHeader: {
     position: 'absolute',
-    bottom: 0,
     width: '100%',
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 30,
   },
 
   largeProfileImageContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#fff',
+    width: 104,
+    height: 104,
+    borderRadius: 52,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
     elevation: 6,
   },
 
   largeProfileImageText: {
-    fontSize: 40,
-    fontWeight: '700',
-    color: '#000',
+    fontSize: 42,
+    fontWeight: '800',
   },
 
   userName: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#fff',
   },
 
@@ -69,20 +61,22 @@ export default StyleSheet.create({
   ===================== */
 
   profileSection: {
-    marginTop: -40,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 34,
-    borderTopRightRadius: 34,
-    padding: 20,
-    paddingBottom: 140,
-    elevation: 10,
+    marginTop: -48,
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    padding: 22,
+    paddingBottom: 160,
+    elevation: 12,
   },
 
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
-    color: '#666',
-    marginBottom: 12,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginTop: 26,
+    marginBottom: 10,
+    opacity: 0.6,
   },
 
   /* =====================
@@ -94,30 +88,26 @@ export default StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-  },
-
-  optionRowSection: {
-    marginVertical: 18,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E3E4E8',
   },
 
   optionLabel: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#000',
+    fontWeight: '600',
   },
 
   /* =====================
-     TOGGLE SWITCH
+     TOGGLE
   ===================== */
 
   toggleSwitch: {
-    width: 52,
+    width: 50,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#ccc',
     padding: 3,
+    backgroundColor: '#D1D1D6',
+    justifyContent: 'center',
   },
 
   toggleKnob: {
@@ -129,42 +119,18 @@ export default StyleSheet.create({
   },
 
   /* =====================
-     RADIO BUTTONS
-  ===================== */
-
-  radioOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-
-  radioCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 2,
-    borderColor: '#007AFF',
-    marginRight: 10,
-  },
-
-  radioCircleSelected: {
-    backgroundColor: '#007AFF',
-  },
-
-  /* =====================
      INPUTS
   ===================== */
 
   input: {
     width: '100%',
     borderWidth: 1,
-    borderColor: '#E5E5EA',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderColor: '#D1D5DB', // ✅ FIX: border was missing
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 16,
-    marginBottom: 12,
-    backgroundColor: '#fff',
+    marginBottom: 14,
   },
 
   /* =====================
@@ -172,34 +138,78 @@ export default StyleSheet.create({
   ===================== */
 
   primaryButton: {
-    backgroundColor: '#007AFF',
     paddingVertical: 14,
-    borderRadius: 14,
+    borderRadius: 16,
     alignItems: 'center',
-    marginTop: 4,
+    backgroundColor: '#0D6EFD',
+    marginTop: 6,
   },
 
   primaryText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+    color: '#fff',
   },
 
   logoutButton: {
     flexDirection: 'row',
-    backgroundColor: '#DC3545',
     paddingVertical: 16,
-    borderRadius: 14,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 28,
+    marginTop: 32,
+    backgroundColor: '#DC3545',
   },
 
   logoutButtonText: {
-    color: '#fff',
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
-    marginLeft: 12,
+    marginLeft: 10,
+    color: '#fff',
+  },
+
+  /* =====================
+     DANGER ZONE
+  ===================== */
+
+  dangerZone: {
+    marginTop: 32,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F5C2C7',
+    backgroundColor: '#FFF5F5',
+  },
+
+  dangerZoneTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#B02A37',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 6,
+  },
+
+  dangerZoneDescription: {
+    fontSize: 14,
+    color: '#842029',
+    marginBottom: 14,
+    lineHeight: 20,
+  },
+
+  dangerZoneButton: {
+    alignSelf: 'flex-start',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#DC3545',
+  },
+
+  dangerZoneButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#DC3545',
   },
 
   /* =====================
@@ -208,7 +218,7 @@ export default StyleSheet.create({
 
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: 'rgba(0,0,0,0.55)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -216,73 +226,47 @@ export default StyleSheet.create({
 
   modalBox: {
     width: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 22,
-    padding: 22,
+    borderRadius: 24,
+    padding: 24,
+    elevation: 20,
   },
 
   modalTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 20,
+    fontWeight: '800',
+    marginBottom: 14,
     textAlign: 'center',
   },
 
-  dangerButton: {
-    backgroundColor: '#FDECEC',
-    paddingVertical: 14,
-    borderRadius: 14,
-    marginBottom: 12,
-    alignItems: 'center',
-  },
-
-  dangerText: {
-    color: '#DC3545',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-
   modalCancel: {
-    marginTop: 8,
     paddingVertical: 14,
-    borderRadius: 14,
-    backgroundColor: '#EFEFF4',
+    borderRadius: 16,
+    backgroundColor: '#828282e0',
     alignItems: 'center',
+    marginTop: 8,
   },
 
   modalCancelText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#333',
   },
 
   /* =====================
-     NAV BAR
+     ERROR / SUCCESS
   ===================== */
 
-  bottomNavbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    paddingBottom: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-    backgroundColor: '#FFFFFF',
+  errorText: {
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: 'center',
+    marginVertical: 10,
   },
 
-  navItem: {
-    alignItems: 'center',
-    paddingVertical: 6,
-  },
-
-  navItemText: {
-    fontSize: 12,
-    color: '#8E8E93',
-    marginTop: 2,
-  },
-
-  navItemTextActive: {
-    fontSize: 12,
-    color: '#007AFF',
+  successText: {
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: 'center',
+    marginVertical: 10,
   },
 });
+

@@ -17,22 +17,28 @@ const PRIMARY_BLUE = '#2979FF';
 const lightColors = {
   background: '#f2f2f2',
   card: '#ffffff',
+
   text: '#111111',
-  icon: '#8E8E93',
+  textSecondary: '#3A3A3C', // ✅ added
   muted: '#777777',
 
-  // ✅ REQUIRED
+  border: '#E5E5EA', // ✅ added
+  icon: '#8E8E93',
+
   primary: PRIMARY_BLUE,
 };
 
 const darkColors = {
   background: '#121212',
   card: '#1e1e1e',
+
   text: '#ffffff',
-  icon: '#C7C7CC',
+  textSecondary: '#D1D1D6', // ✅ LIGHT GRAY (readable)
   muted: '#aaaaaa',
 
-  // ✅ REQUIRED
+  border: '#2C2C2E', // ✅ subtle divider
+  icon: '#C7C7CC',
+
   primary: PRIMARY_BLUE,
 };
 
@@ -98,4 +104,3 @@ export const useTheme = () => {
   }
   return context;
 };
-
