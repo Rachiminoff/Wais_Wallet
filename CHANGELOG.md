@@ -51,3 +51,10 @@ All notable changes to this project will be documented here.
 
 - Faulty balance aggregation logic that caused phantom subtractions.
 - Dependence on pocket and savings balances when computing Total Balance.
+
+## [1.0.3] - 2026-01-04
+**By:** Yambao
+
+## Fixed
+
+- Dark mode bug in edit pocket and edit savings pages.
