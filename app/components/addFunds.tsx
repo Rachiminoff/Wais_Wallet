@@ -256,30 +256,6 @@ const AddFundsScreen: React.FC = () => {
             />
           </View>
 
-          {/* NOTE */}
-          <Text
-            style={[
-              styles.sectionLabel,
-              { color: colors.text },
-            ]}
-          >
-            Note (optional)
-          </Text>
-          <TextInput
-            style={[
-              styles.noteInput,
-              {
-                backgroundColor: colors.card,
-                borderColor: colors.border,
-                color: colors.text,
-              },
-            ]}
-            value={note}
-            onChangeText={setNote}
-            multiline
-            placeholderTextColor={colors.textMuted}
-          />
-
           {/* BUTTON — untouched */}
           <TouchableOpacity
             style={styles.continueButton}
