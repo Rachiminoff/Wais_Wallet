@@ -52,19 +52,20 @@ All notable changes to this project will be documented here.
 - Dependence on pocket and savings balances when computing Total Balance.
 
   
-
 ## [1.0.3] - 2026-01-04
 **By:** Yambao
 
 ## Fixed
 
 - Dark mode bug in edit pocket and edit savings pages.
+- Change password, clear all data, and logout now works.
 
 ## Added
 
 - Allocation health pie chart on home
-
 - subtract funds option in add funds page
+- FAQ and About pages.
+- Change username is now available.
 
 ## Changed
 
@@ -73,5 +74,4 @@ All notable changes to this project will be documented here.
 ## Removed
 
 - Notes field in add funds page (unused)
-
 - Font size settings in profile page
