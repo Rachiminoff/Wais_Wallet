@@ -1,7 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
   Image,
   Modal,
   ScrollView,
@@ -30,6 +29,7 @@ import {
   addToBalance,
   getPockets,
   getUser,
+  subtractFromBalance,
 } from '../utils/mmkvStorage';
 
 const AddFundsScreen: React.FC = () => {
@@ -43,7 +43,8 @@ const AddFundsScreen: React.FC = () => {
   const [pockets, setPockets] = useState<Packet[]>([]);
 
   const [selectedDestination, setSelectedDestination] =
-    useState<DestinationType>('safe_balance');
+    useState<DestinationType | 'subtract'>('safe_balance');
+
   const [selectedPocket, setSelectedPocket] =
     useState<string | null>(null);
 
@@ -59,6 +60,12 @@ const AddFundsScreen: React.FC = () => {
     useState<Transaction | null>(null);
   const [showSuccessModal, setShowSuccessModal] =
     useState(false);
+
+  /* ERROR BOTTOM SHEET */
+  const [showErrorModal, setShowErrorModal] =
+    useState(false);
+  const [errorMessage, setErrorMessage] =
+    useState('');
 
   /* ====================
      LOAD DATA
@@ -79,11 +86,11 @@ const AddFundsScreen: React.FC = () => {
   };
 
   /* ====================
-     ADD FUNDS LOGIC
+     TRANSACTION LOGIC
   ==================== */
-  const addFunds = (
+  const handleTransaction = (
     amount: number,
-    destination: DestinationType,
+    destination: DestinationType | 'subtract',
     pocketId?: string
   ): Transaction => {
     if (destination === 'safe_balance') {
@@ -91,10 +98,13 @@ const AddFundsScreen: React.FC = () => {
     }
 
     if (destination === 'pocket') {
-      if (!pocketId) {
+      if (!pocketId)
         throw new Error('No pocket selected');
-      }
       addFundsToPocket(pocketId, amount);
+    }
+
+    if (destination === 'subtract') {
+      subtractFromBalance(amount);
     }
 
     return {
@@ -103,6 +113,8 @@ const AddFundsScreen: React.FC = () => {
       destinationName:
         destination === 'safe_balance'
           ? 'Safe Balance'
+          : destination === 'subtract'
+          ? 'Spent from Safe Balance'
           : getPocketName(pocketId!),
       date: new Date().toISOString(),
       note: note || undefined,
@@ -116,24 +128,22 @@ const AddFundsScreen: React.FC = () => {
     const validation = validateAmount(fundAmount);
 
     if (!validation.isValid) {
-      return Alert.alert(
-        'Invalid Amount',
-        validation.message
-      );
+      setErrorMessage(validation.message);
+      setShowErrorModal(true);
+      return;
     }
 
     if (
       selectedDestination === 'pocket' &&
       !selectedPocket
     ) {
-      return Alert.alert(
-        'Select Pocket',
-        'Please choose a pocket'
-      );
+      setErrorMessage('Please choose a pocket.');
+      setShowErrorModal(true);
+      return;
     }
 
     try {
-      const tx = addFunds(
+      const tx = handleTransaction(
         validation.amount!,
         selectedDestination,
         selectedPocket || undefined
@@ -145,7 +155,11 @@ const AddFundsScreen: React.FC = () => {
       setUser(getUser());
       setPockets(getPockets());
     } catch (e: any) {
-      Alert.alert('Error', e.message);
+      setErrorMessage(
+        e.message ||
+          'You cannot subtract this amount because your account will result in a negative balance.'
+      );
+      setShowErrorModal(true);
     }
   };
 
@@ -177,14 +191,13 @@ const AddFundsScreen: React.FC = () => {
             { backgroundColor: colors.background },
           ]}
         >
-          {/* DESTINATION */}
           <Text
             style={[
               styles.sectionLabel,
               { color: colors.text },
             ]}
           >
-            Add Funds
+            Transaction Type
           </Text>
 
           <TouchableOpacity
@@ -204,7 +217,9 @@ const AddFundsScreen: React.FC = () => {
               ]}
             >
               {selectedDestination === 'safe_balance'
-                ? 'Safe Balance'
+                ? 'Add to Safe Balance'
+                : selectedDestination === 'subtract'
+                ? 'Subtract Funds'
                 : selectedPocket
                 ? getPocketName(selectedPocket)
                 : 'Select Pocket'}
@@ -216,7 +231,6 @@ const AddFundsScreen: React.FC = () => {
             />
           </TouchableOpacity>
 
-          {/* AMOUNT */}
           <Text
             style={[
               styles.sectionLabel,
@@ -256,7 +270,6 @@ const AddFundsScreen: React.FC = () => {
             />
           </View>
 
-          {/* BUTTON — untouched */}
           <TouchableOpacity
             style={styles.continueButton}
             onPress={handleSubmit}
@@ -267,7 +280,7 @@ const AddFundsScreen: React.FC = () => {
           </TouchableOpacity>
         </ScrollView>
 
-        {/* DESTINATION MODAL */}
+        {/* DESTINATION DROPDOWN */}
         <Modal transparent visible={showDestinationDropdown}>
           <View style={styles.modalOverlay}>
             <View
@@ -289,7 +302,24 @@ const AddFundsScreen: React.FC = () => {
                     { color: colors.text },
                   ]}
                 >
-                  Safe Balance
+                  Add to Safe Balance
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedDestination('subtract');
+                  setSelectedPocket(null);
+                  setShowDestinationDropdown(false);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.dropdownItem,
+                    { color: colors.text },
+                  ]}
+                >
+                  Subtract Funds
                 </Text>
               </TouchableOpacity>
 
@@ -328,7 +358,7 @@ const AddFundsScreen: React.FC = () => {
           </View>
         </Modal>
 
-        {/* POCKET MODAL */}
+        {/* POCKET DROPDOWN */}
         <Modal transparent visible={showPocketDropdown}>
           <View style={styles.modalOverlay}>
             <View
@@ -374,6 +404,63 @@ const AddFundsScreen: React.FC = () => {
           </View>
         </Modal>
 
+        {/* ERROR BOTTOM SHEET */}
+        <Modal transparent visible={showErrorModal}>
+          <View style={styles.modalOverlay}>
+            <View
+              style={[
+                styles.successModalContent,
+                {
+                  backgroundColor: colors.card,
+                  position: 'absolute',
+                  bottom: 0,
+                  width: '100%',
+                  borderTopLeftRadius: 24,
+                  borderTopRightRadius: 24,
+                },
+              ]}
+            >
+              <Image
+                source={require('../../assets/unsuccessfulOwl.png')}
+                style={{
+                  width: 100,
+                  height: 100,
+                  resizeMode: 'contain',
+                  marginBottom: 12,
+                }}
+              />
+
+              <Text
+                style={[
+                  styles.successTitle,
+                  { color: colors.text },
+                ]}
+              >
+                Transaction Failed
+              </Text>
+
+              <Text
+                style={{
+                  color: colors.textMuted,
+                  textAlign: 'center',
+                  marginBottom: 20,
+                }}
+              >
+                {errorMessage}
+              </Text>
+
+              <TouchableOpacity
+                style={styles.goHomeButton}
+                onPress={() => setShowErrorModal(false)}
+              >
+                <Text style={styles.goHomeButtonText}>
+                  Got it
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
         {/* SUCCESS MODAL */}
         <Modal transparent visible={showSuccessModal}>
           <View style={styles.modalOverlay}>
@@ -399,81 +486,9 @@ const AddFundsScreen: React.FC = () => {
                   { color: colors.text },
                 ]}
               >
-                Top up Successful!
+                Transaction Successful!
               </Text>
 
-              {successTransaction && (
-                <View
-                  style={[
-                    styles.transactionDetailsBox,
-                    { backgroundColor: colors.background },
-                  ]}
-                >
-                  <View style={styles.transactionDetailRow}>
-                    <Text
-                      style={[
-                        styles.transactionDetailLabel,
-                        { color: colors.textMuted },
-                      ]}
-                    >
-                      Transferred to
-                    </Text>
-                    <Text
-                      style={[
-                        styles.transactionDetailValue,
-                        { color: colors.text },
-                      ]}
-                    >
-                      {
-                        successTransaction.destinationName
-                      }
-                    </Text>
-                  </View>
-
-                  <View style={styles.transactionDetailRow}>
-                    <Text
-                      style={[
-                        styles.transactionDetailLabel,
-                        { color: colors.textMuted },
-                      ]}
-                    >
-                      Amount
-                    </Text>
-                    <Text
-                      style={[
-                        styles.transactionDetailValue,
-                        { color: colors.text },
-                      ]}
-                    >
-                      ₱
-                      {successTransaction.amount.toLocaleString()}
-                    </Text>
-                  </View>
-
-                  <View style={styles.transactionDetailRow}>
-                    <Text
-                      style={[
-                        styles.transactionDetailLabel,
-                        { color: colors.textMuted },
-                      ]}
-                    >
-                      Date
-                    </Text>
-                    <Text
-                      style={[
-                        styles.transactionDetailValue,
-                        { color: colors.text },
-                      ]}
-                    >
-                      {new Date(
-                        successTransaction.date
-                      ).toLocaleDateString()}
-                    </Text>
-                  </View>
-                </View>
-              )}
-
-              {/* BUTTON — untouched */}
               <TouchableOpacity
                 style={styles.goHomeButton}
                 onPress={() => {

@@ -14,14 +14,21 @@ import {
 } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { getStats } from './utils/mmkvStorage';
 
+import { AllocationHealthChart } from './components/AllocationHealthChart';
 import { BottomNavbar } from './components/BottomNavbar';
 import { useTheme } from './context/ThemeContext';
 import { formatCurrencyDisplay } from './scripts/home';
 import styles from './styles/HomeScreenStyles';
+
 import { Packet, User } from './types';
-import { getPockets, getSavings, getUser } from './utils/mmkvStorage';
+
+import {
+  getCurrentTotalBalance,
+  getPockets,
+  getSavings,
+  getUser,
+} from './utils/mmkvStorage';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -46,11 +53,13 @@ export default function HomeScreen() {
 
   const [user, setUser] = useState<User | null>(null);
   const [pockets, setPockets] = useState<Packet[]>([]);
+  const [savingsTotal, setSavingsTotal] = useState(0);
+
   const [isLoading, setIsLoading] = useState(true);
   const [showTotalBalance, setShowTotalBalance] = useState(false);
 
   /* ====================
-     LOAD DATA
+     LOAD DATA (ON FOCUS)
   ==================== */
   useFocusEffect(
     useCallback(() => {
@@ -62,8 +71,18 @@ export default function HomeScreen() {
           return;
         }
 
+        const storedPockets = getPockets();
+        const storedSavings = getSavings();
+
         setUser(storedUser);
-        setPockets(getPockets());
+        setPockets(storedPockets);
+
+        const totalSavings = storedSavings.reduce(
+          (sum, s) => sum + (typeof s.currentAmount === 'number' ? s.currentAmount : 0),
+          0
+        );
+
+        setSavingsTotal(totalSavings);
       } catch (err) {
         console.error(err);
         Alert.alert('Error', 'Failed to load data');
@@ -78,7 +97,9 @@ export default function HomeScreen() {
   ==================== */
   if (isLoading || !user) {
     return (
-      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+      <SafeAreaView
+        style={[styles.safeArea, { backgroundColor: colors.background }]}
+      >
         <Text
           style={{
             textAlign: 'center',
@@ -93,30 +114,37 @@ export default function HomeScreen() {
   }
 
   /* ====================
-     CALCULATIONS
+     CALCULATIONS (CORRECT)
   ==================== */
-  const safeBalanceDisplay = formatCurrencyDisplay(user.balance, user.currency);
 
+  // SAFE
+  const safeBalanceDisplay = formatCurrencyDisplay(
+    user.balance,
+    user.currency
+  );
+
+  // POCKET TOTAL
   const totalPocketBalance = pockets.reduce(
     (sum, p) => sum + (typeof p.amount === 'number' ? p.amount : 0),
     0
   );
 
-const stats = getStats();
+  // ✅ TOTAL BALANCE (DERIVED — SOURCE OF TRUTH)
+  const totalBalance = getCurrentTotalBalance();
 
-const totalBalance = stats.totalBalanceAllTime;
-const totalBalanceDisplay = formatCurrencyDisplay(
-  totalBalance,
-  user.currency
-);
+  const totalBalanceDisplay = formatCurrencyDisplay(
+    totalBalance,
+    user.currency
+  );
 
-
-  const savings = getSavings();
-
+  // MOST COSTLY POCKET
   const mostCostlyPocket =
     pockets.length > 0
       ? [...pockets].sort((a, b) => b.amount - a.amount)[0]
       : null;
+
+  // MOST EXPENSIVE SAVINGS
+  const savings = getSavings();
 
   const mostExpensiveSavings =
     savings.length > 0
@@ -130,7 +158,10 @@ const totalBalanceDisplay = formatCurrencyDisplay(
     p => typeof p.amount === 'number' && p.amount > 0
   );
 
-  const totalPocketAmount = validPockets.reduce((sum, p) => sum + p.amount, 0);
+  const totalPocketAmount = validPockets.reduce(
+    (sum, p) => sum + p.amount,
+    0
+  );
 
   const pieData = validPockets.map((p, index) => {
     const percent =
@@ -150,7 +181,9 @@ const totalBalanceDisplay = formatCurrencyDisplay(
      UI
   ==================== */
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.background }]}
+    >
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* BALANCE CARD */}
         <View style={styles.gradientBalanceCard}>
@@ -159,9 +192,19 @@ const totalBalanceDisplay = formatCurrencyDisplay(
             style={styles.gradientBalanceCardInner}
           >
             {/* PROFILE */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 18 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginBottom: 18,
+              }}
+            >
               <View style={styles.profileImageContainer}>
-                <Icon name="person" size={32} color="rgba(255,255,255,0.9)" />
+                <Icon
+                  name="person"
+                  size={32}
+                  color="rgba(255,255,255,0.9)"
+                />
               </View>
 
               <View style={styles.profileTextContainer}>
@@ -176,7 +219,9 @@ const totalBalanceDisplay = formatCurrencyDisplay(
 
             {/* SAFE BALANCE */}
             <View style={styles.safeBalanceSection}>
-              <Text style={styles.safeBalanceLabel}>SAFE BALANCE:</Text>
+              <Text style={styles.safeBalanceLabel}>
+                SAFE BALANCE:
+              </Text>
               <Text style={styles.safeBalanceAmount}>
                 {safeBalanceDisplay.full}
               </Text>
@@ -184,7 +229,9 @@ const totalBalanceDisplay = formatCurrencyDisplay(
 
             {/* TOTAL BALANCE */}
             <View style={styles.totalBalanceSection}>
-              <Text style={styles.totalBalanceLabel}>TOTAL BALANCE:</Text>
+              <Text style={styles.totalBalanceLabel}>
+                TOTAL BALANCE:
+              </Text>
 
               <View style={styles.totalBalanceContainer}>
                 {showTotalBalance ? (
@@ -196,17 +243,27 @@ const totalBalanceDisplay = formatCurrencyDisplay(
                       style={styles.eyeIconButton}
                       onPress={() => setShowTotalBalance(false)}
                     >
-                      <Icon name="eye-off-outline" size={20} color="#fff" />
+                      <Icon
+                        name="eye-off-outline"
+                        size={20}
+                        color="#fff"
+                      />
                     </TouchableOpacity>
                   </>
                 ) : (
                   <>
-                    <Text style={styles.dotsText}>••••••••</Text>
+                    <Text style={styles.dotsText}>
+                      ••••••••
+                    </Text>
                     <TouchableOpacity
                       style={styles.eyeIconButton}
                       onPress={() => setShowTotalBalance(true)}
                     >
-                      <Icon name="eye-outline" size={20} color="#fff" />
+                      <Icon
+                        name="eye-outline"
+                        size={20}
+                        color="#fff"
+                      />
                     </TouchableOpacity>
                   </>
                 )}
@@ -217,16 +274,24 @@ const totalBalanceDisplay = formatCurrencyDisplay(
             <View style={styles.actionButtonsContainer}>
               <TouchableOpacity
                 style={styles.addFundsButton}
-                onPress={() => router.push('/components/addFunds')}
+                onPress={() =>
+                  router.push('/components/addFunds')
+                }
               >
-                <Text style={styles.addFundsButtonText}>Add Funds</Text>
+                <Text style={styles.addFundsButtonText}>
+                  Add Funds
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.transferFundsButton}
-                onPress={() => router.push('/components/transfer')}
+                onPress={() =>
+                  router.push('/components/transfer')
+                }
               >
-                <Text style={styles.transferFundsButtonText}>Transfer</Text>
+                <Text style={styles.transferFundsButtonText}>
+                  Transfer Funds
+                </Text>
               </TouchableOpacity>
             </View>
           </LinearGradient>
@@ -251,20 +316,35 @@ const totalBalanceDisplay = formatCurrencyDisplay(
             </Text>
           ) : (
             pockets.map((p, i) => {
-              const amount = formatCurrencyDisplay(p.amount, user.currency);
+              const amount = formatCurrencyDisplay(
+                p.amount,
+                user.currency
+              );
               return (
                 <View
                   key={p.id}
                   style={[
                     styles.pocketRow,
-                    i === pockets.length - 1 && { borderBottomWidth: 0 },
+                    i === pockets.length - 1 && {
+                      borderBottomWidth: 0,
+                    },
                     { backgroundColor: colors.card },
                   ]}
                 >
-                  <Text style={[styles.pocketName, { color: colors.text }]}>
+                  <Text
+                    style={[
+                      styles.pocketName,
+                      { color: colors.text },
+                    ]}
+                  >
                     {p.name}
                   </Text>
-                  <Text style={[styles.pocketAmount, { color: colors.text }]}>
+                  <Text
+                    style={[
+                      styles.pocketAmount,
+                      { color: colors.text },
+                    ]}
+                  >
                     {amount.full}
                   </Text>
                 </View>
@@ -296,7 +376,22 @@ const totalBalanceDisplay = formatCurrencyDisplay(
 
           <StatRow
             label="Pocket Balance"
-            value={formatCurrencyDisplay(totalPocketBalance, user.currency).full}
+            value={
+              formatCurrencyDisplay(
+                totalPocketBalance,
+                user.currency
+              ).full
+            }
+          />
+
+          <StatRow
+            label="Savings Balance"
+            value={
+              formatCurrencyDisplay(
+                savingsTotal,
+                user.currency
+              ).full
+            }
           />
 
           {mostCostlyPocket && (
@@ -347,7 +442,13 @@ const totalBalanceDisplay = formatCurrencyDisplay(
               POCKET DISTRIBUTION
             </Text>
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 18,
+              }}
+            >
               <PieChart
                 data={pieData}
                 width={220}
@@ -380,7 +481,12 @@ const totalBalanceDisplay = formatCurrencyDisplay(
                         marginRight: 10,
                       }}
                     />
-                    <Text style={{ fontSize: 13, color: colors.text }}>
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        color: colors.text,
+                      }}
+                    >
                       {item.percent}% {item.name}
                     </Text>
                   </View>
@@ -401,11 +507,15 @@ const totalBalanceDisplay = formatCurrencyDisplay(
           </View>
         )}
 
-        {/* SPACE FOR NAVBAR */}
-        <View style={{ height: 90 }} />
+        <AllocationHealthChart
+        safeBalance={user.balance}
+        pocketTotal={totalPocketBalance}
+        savingsTotal={savingsTotal}
+        currency={user.currency}
+      />
+
       </ScrollView>
 
-      {/* BOTTOM NAV */}
       <BottomNavbar />
     </SafeAreaView>
   );
@@ -414,7 +524,13 @@ const totalBalanceDisplay = formatCurrencyDisplay(
 /* ====================
    SMALL COMPONENTS
 ==================== */
-const StatRow = ({ label, value }: { label: string; value: string }) => {
+const StatRow = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) => {
   const { colors } = useTheme();
 
   return (
@@ -425,8 +541,16 @@ const StatRow = ({ label, value }: { label: string; value: string }) => {
         paddingVertical: 8,
       }}
     >
-      <Text style={{ color: colors.muted, fontSize: 13 }}>{label}</Text>
-      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text }}>
+      <Text style={{ color: colors.muted, fontSize: 13 }}>
+        {label}
+      </Text>
+      <Text
+        style={{
+          fontSize: 13,
+          fontWeight: '600',
+          color: colors.text,
+        }}
+      >
         {value}
       </Text>
     </View>
