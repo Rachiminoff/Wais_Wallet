@@ -1,13 +1,13 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Image,
-  Modal,
-  SafeAreaView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    Modal,
+    SafeAreaView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 import { useTheme } from '../context/ThemeContext';
@@ -73,7 +73,7 @@ export default function AddToSavingsScreen() {
     <SafeAreaView
       style={[
         styles.safeArea,
-        { backgroundColor: colors.background },
+        { backgroundColor: colors.background, paddingTop: 30 },
       ]}
     >
       {/* ================= ADD TO SAVINGS CARD ================= */}

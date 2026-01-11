@@ -56,7 +56,7 @@ export default function NewSavingsGoalScreen() {
     <SafeAreaView
       style={[
         styles.safeArea,
-        { backgroundColor: colors.background },
+        { backgroundColor: colors.background, paddingTop: 30, paddingBottom: 30 },
       ]}
     >
       {/* ================= HEADER ================= */}

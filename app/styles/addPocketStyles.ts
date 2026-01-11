@@ -47,10 +47,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
-    position: 'absolute',
-    bottom: 30,
-    left: 20,
-    right: 20,
   },
 
   continueText: {

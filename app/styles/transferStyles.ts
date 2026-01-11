@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-const PRIMARY = '#8FA5A3';
+const PRIMARY = '#0f4248';
 const BORDER = '#E5E5E5';
 const LABEL = '#9AA0A6';
 const TEXT = '#111';
@@ -16,6 +16,12 @@ export default StyleSheet.create({
     paddingTop: 16,
   },
 
+  header: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+
   title: {
     fontSize: 20,
     fontWeight: '700',
@@ -25,22 +31,68 @@ export default StyleSheet.create({
   },
 
   /* =====================
-     CARDS
+     FORM
   ===================== */
-  card: {
-    borderWidth: 1,
-    borderColor: BORDER,
-    borderRadius: 14,
-    padding: 16,
-    marginVertical: 8, // optional: separates cards vertically
-    marginHorizontal: 16, 
-    backgroundColor: '#fff',
+  formGroup: {
+    marginBottom: 20,
+    paddingHorizontal: 20,
   },
 
   label: {
     fontSize: 13,
     color: LABEL,
     marginBottom: 6,
+    fontWeight: '700',
+  },
+
+  input: {
+    backgroundColor: '#f3f6f6',
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 15,
+    color: '#000',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+  },
+
+  amountInput: {
+    opacity: 0.85,
+  },
+
+  /* =====================
+     DROPDOWN
+  ===================== */
+  dropdownMenu: {
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+    maxHeight: 250,
+    marginBottom: 20,
+  },
+
+  dropdownScroll: {
+    maxHeight: 250,
+  },
+
+  dropdownItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E5E5EA',
+  },
+
+  dropdownItemText: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
+
+  dropdownItemAmount: {
+    fontSize: 15,
+    fontWeight: '600',
   },
 
   row: {
@@ -62,31 +114,6 @@ export default StyleSheet.create({
   },
 
   /* =====================
-     INPUT
-  ===================== */
-  inputCard: {
-    borderWidth: 1,
-    borderColor: BORDER,
-    borderRadius: 14,
-    padding: 8,
-    marginTop: 8,
-    marginHorizontal: 16, 
-  },
-
-  inputLabel: {
-    fontSize: 13,
-    color: LABEL,
-    marginBottom: 6,
-  },
-
-  input: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: TEXT,
-    padding: 0,
-  },
-
-  /* =====================
      BUTTON
   ===================== */
   button: {
@@ -95,7 +122,7 @@ export default StyleSheet.create({
     paddingVertical: 18,
     alignItems: 'center',
     marginTop: 28,
-    marginHorizontal: 16, 
+    marginHorizontal: 20, 
   },
 
   buttonText: {
@@ -111,7 +138,6 @@ export default StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.35)',
-    justifyContent: 'flex-end',
   },
 
   modalSheet: {
@@ -177,6 +203,7 @@ export default StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     marginBottom: 16,
+    textAlign: 'center',
   },
 
   errorTitle: {
@@ -184,6 +211,7 @@ export default StyleSheet.create({
     fontWeight: '700',
     marginBottom: 16,
     color: '#D9534F',
+    textAlign: 'center',
   },
 
   owlImage: {

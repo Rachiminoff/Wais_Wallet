@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-import { BottomNavbar } from './components/BottomNavbar'; // ✅ REUSABLE NAVBAR
+import { BottomNavbar } from './components/BottomNavbar';
 import { useTheme } from './context/ThemeContext';
 import styles from './styles/savingsStyles';
 import { SavingsGoal } from './types';
@@ -47,7 +47,7 @@ export default function SavingsScreen() {
     <SafeAreaView
       style={[
         styles.safeArea,
-        { backgroundColor: colors.background },
+        { backgroundColor: colors.background, paddingTop: 30 },
       ]}
     >
       {/* =========================

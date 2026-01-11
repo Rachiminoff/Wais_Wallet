@@ -1,10 +1,10 @@
 import React from 'react';
 import {
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 
@@ -13,7 +13,7 @@ export default function AboutPage() {
 
   return (
     <SafeAreaView
-      style={[styles.safe, { backgroundColor: colors.background }]}
+      style={[styles.safe, { backgroundColor: colors.background, paddingTop: 30 }]}
     >
       <ScrollView
         contentContainerStyle={styles.container}

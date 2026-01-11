@@ -29,7 +29,6 @@ import {
   addToBalance,
   getPockets,
   getUser,
-  subtractFromBalance,
 } from '../utils/mmkvStorage';
 
 const AddFundsScreen: React.FC = () => {
@@ -43,9 +42,9 @@ const AddFundsScreen: React.FC = () => {
   const [pockets, setPockets] = useState<Packet[]>([]);
 
   const [selectedDestination, setSelectedDestination] =
-    useState<DestinationType | 'subtract'>('safe_balance');
+    useState<DestinationType | null>(null);
 
-  const [selectedPocket, setSelectedPocket] =
+  const [selectedPocketId, setSelectedPocketId] =
     useState<string | null>(null);
 
   const [fundAmount, setFundAmount] = useState('');
@@ -53,13 +52,16 @@ const AddFundsScreen: React.FC = () => {
 
   const [showDestinationDropdown, setShowDestinationDropdown] =
     useState(false);
-  const [showPocketDropdown, setShowPocketDropdown] =
-    useState(false);
 
   const [successTransaction, setSuccessTransaction] =
     useState<Transaction | null>(null);
   const [showSuccessModal, setShowSuccessModal] =
     useState(false);
+
+  const [showConfirmModal, setShowConfirmModal] =
+    useState(false);
+
+  const [amountFocused, setAmountFocused] = useState(false);
 
   /* ERROR BOTTOM SHEET */
   const [showErrorModal, setShowErrorModal] =
@@ -81,6 +83,26 @@ const AddFundsScreen: React.FC = () => {
   const getPocketName = (id: string) =>
     pockets.find(p => p.id === id)?.name || '';
 
+  const getDestinationBalance = () => {
+    if (selectedDestination === 'safe_balance') {
+      return user?.balance ?? 0;
+    }
+    if (selectedDestination === 'pocket' && selectedPocketId) {
+      return pockets.find(p => p.id.toString() === selectedPocketId)?.amount ?? 0;
+    }
+    return 0;
+  };
+
+  const getDestinationName = () => {
+    if (selectedDestination === 'safe_balance') {
+      return 'Safe Balance';
+    }
+    if (selectedDestination === 'pocket' && selectedPocketId) {
+      return getPocketName(selectedPocketId);
+    }
+    return '';
+  };
+
   const handleFundAmountChange = (text: string) => {
     setFundAmount(formatInputAmount(text));
   };
@@ -90,7 +112,7 @@ const AddFundsScreen: React.FC = () => {
   ==================== */
   const handleTransaction = (
     amount: number,
-    destination: DestinationType | 'subtract',
+    destination: DestinationType,
     pocketId?: string
   ): Transaction => {
     if (destination === 'safe_balance') {
@@ -103,18 +125,12 @@ const AddFundsScreen: React.FC = () => {
       addFundsToPocket(pocketId, amount);
     }
 
-    if (destination === 'subtract') {
-      subtractFromBalance(amount);
-    }
-
     return {
       amount,
       destination,
       destinationName:
         destination === 'safe_balance'
           ? 'Safe Balance'
-          : destination === 'subtract'
-          ? 'Spent from Safe Balance'
           : getPocketName(pocketId!),
       date: new Date().toISOString(),
       note: note || undefined,
@@ -135,21 +151,29 @@ const AddFundsScreen: React.FC = () => {
 
     if (
       selectedDestination === 'pocket' &&
-      !selectedPocket
+      !selectedPocketId
     ) {
       setErrorMessage('Please choose a pocket.');
       setShowErrorModal(true);
       return;
     }
 
+    setShowConfirmModal(true);
+  };
+
+  const confirmTransaction = () => {
+    const validation = validateAmount(fundAmount);
+    if (!validation.isValid) return;
+
     try {
       const tx = handleTransaction(
         validation.amount!,
         selectedDestination,
-        selectedPocket || undefined
+        selectedPocketId || undefined
       );
 
       setSuccessTransaction(tx);
+      setShowConfirmModal(false);
       setShowSuccessModal(true);
 
       setUser(getUser());
@@ -157,11 +181,14 @@ const AddFundsScreen: React.FC = () => {
     } catch (e: any) {
       setErrorMessage(
         e.message ||
-          'You cannot subtract this amount because your account will result in a negative balance.'
+          'An error occurred while processing the transaction.'
       );
+      setShowConfirmModal(false);
       setShowErrorModal(true);
     }
   };
+
+  const isAmountValid = Number(fundAmount) > 0 && selectedDestination !== null;
 
   /* ====================
      UI
@@ -171,7 +198,7 @@ const AddFundsScreen: React.FC = () => {
       <View
         style={[
           styles.safeArea,
-          { backgroundColor: colors.background },
+          { backgroundColor: colors.background, paddingTop: 50 },
         ]}
       >
         {/* HEADER */}
@@ -185,19 +212,32 @@ const AddFundsScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        <ScrollView
+        <Text
           style={[
-            styles.container,
-            { backgroundColor: colors.background },
-          ]}
-        >
+            styles.sectionLabel,
+            { 
+              color: colors.text, 
+              marginTop: 30, 
+              fontSize: 20, 
+              fontWeight: '700',
+              marginHorizontal: 16,
+              marginBottom: 24,
+              textTransform: 'none',
+              letterSpacing: 0,
+            },
+          ]}>
+          Add Funds
+        </Text>
+
+        {/* SELECT POCKET */}
+        <View style={[styles.formGroup, showDestinationDropdown && { marginBottom: 0 }]}>
           <Text
             style={[
-              styles.sectionLabel,
-              { color: colors.text },
+              styles.label,
+              { color: '#000', fontWeight: '700', fontSize: 15 },
             ]}
           >
-            Transaction Type
+            Select Pocket
           </Text>
 
           <TouchableOpacity
@@ -206,217 +246,283 @@ const AddFundsScreen: React.FC = () => {
               {
                 backgroundColor: colors.card,
                 borderColor: colors.border,
+                borderBottomLeftRadius: showDestinationDropdown ? 0 : 10,
+                borderBottomRightRadius: showDestinationDropdown ? 0 : 10,
               },
             ]}
-            onPress={() => setShowDestinationDropdown(true)}
+            onPress={() => setShowDestinationDropdown(!showDestinationDropdown)}
           >
             <Text
               style={[
                 styles.dropdownSelectedText,
-                { color: colors.text },
+                { color: selectedDestination === 'safe_balance' || (selectedDestination === 'pocket' && selectedPocketId) ? colors.text : colors.muted },
               ]}
             >
               {selectedDestination === 'safe_balance'
-                ? 'Add to Safe Balance'
-                : selectedDestination === 'subtract'
-                ? 'Subtract Funds'
-                : selectedPocket
-                ? getPocketName(selectedPocket)
-                : 'Select Pocket'}
+                ? 'Safe Balance'
+                : selectedDestination === 'pocket' && selectedPocketId
+                ? getPocketName(selectedPocketId)
+                : ' - Select - '}
             </Text>
             <Icon
-              name="chevron-down"
+              name={showDestinationDropdown ? "chevron-up" : "chevron-down"}
               size={20}
               color={colors.text}
             />
           </TouchableOpacity>
 
+          {/* DROPDOWN MENU */}
+          {showDestinationDropdown && (
+            <View
+              style={[
+                styles.dropdownList,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                },
+              ]}
+            >
+              <ScrollView
+                style={styles.dropdownScroll}
+                nestedScrollEnabled={true}
+                showsVerticalScrollIndicator={true}
+              >
+                <TouchableOpacity
+                  style={styles.dropdownListItem}
+                  onPress={() => {
+                    setSelectedDestination('safe_balance');
+                    setSelectedPocketId(null);
+                    setShowDestinationDropdown(false);
+                  }}
+                >
+                  <Text style={[styles.dropdownListItemText, { color: colors.text }]}>
+                    Safe Balance
+                  </Text>
+                  <Text style={[styles.dropdownListItemAmount, { color: colors.text }]}>
+                    ₱{(user?.balance ?? 0).toFixed(2)}
+                  </Text>
+                </TouchableOpacity>
+
+                {pockets.map(pocket => (
+                  <TouchableOpacity
+                    key={pocket.id}
+                    style={styles.dropdownListItem}
+                    onPress={() => {
+                      setSelectedDestination('pocket');
+                      setSelectedPocketId(pocket.id.toString());
+                      setShowDestinationDropdown(false);
+                    }}
+                  >
+                    <Text style={[styles.dropdownListItemText, { color: colors.text }]}>
+                      {pocket.name}
+                    </Text>
+                    <Text style={[styles.dropdownListItemAmount, { color: colors.text }]}>
+                      ₱{pocket.amount.toFixed(2)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+        </View>
+
+        {/* AMOUNT */}
+        <View style={styles.formGroup}>
           <Text
             style={[
-              styles.sectionLabel,
-              { color: colors.text },
+              styles.label,
+              { color: '#000', fontWeight: '700', fontSize: 15 },
             ]}
           >
             Amount
           </Text>
-
-          <View
+          <TextInput
             style={[
-              styles.amountInputContainer,
+              styles.input,
+              styles.amountInput,
               {
                 backgroundColor: colors.card,
                 borderColor: colors.border,
+                color: colors.text,
               },
             ]}
-          >
+            keyboardType="decimal-pad"
+            placeholder="Enter amount"
+            placeholderTextColor={colors.textMuted}
+            value={fundAmount}
+            onChangeText={handleFundAmountChange}
+          />
+
+          {/* Disclaimers */}
+          {selectedDestination === 'pocket' && selectedPocketId && (
             <Text
-              style={[
-                styles.currencySymbol,
-                { color: colors.text },
-              ]}
+              style={{
+                fontSize: 12,
+                color: colors.textSecondary,
+                marginTop: 8,
+                lineHeight: 16,
+              }}
             >
-              ₱
+              Note: Adding funds to a pocket will be deducted from your Safe Balance.
             </Text>
-            <TextInput
-              style={[
-                styles.amountInput,
-                { color: colors.text },
-              ]}
-              value={fundAmount}
-              onChangeText={handleFundAmountChange}
-              keyboardType="decimal-pad"
-              placeholder="0.00"
-              placeholderTextColor={colors.textMuted}
-            />
-          </View>
+          )}
 
-          <TouchableOpacity
-            style={styles.continueButton}
-            onPress={handleSubmit}
-          >
-            <Text style={styles.continueButtonText}>
-              Continue
+          {selectedDestination === 'safe_balance' && (
+            <Text
+              style={{
+                fontSize: 12,
+                color: colors.textSecondary,
+                marginTop: 8,
+                lineHeight: 16,
+              }}
+            >
+              Note: Adding funds to Safe Balance does not deduct from any pocket.
             </Text>
-          </TouchableOpacity>
-        </ScrollView>
+          )}
+        </View>
 
-        {/* DESTINATION DROPDOWN */}
-        <Modal transparent visible={showDestinationDropdown}>
-          <View style={styles.modalOverlay}>
-            <View
-              style={[
-                styles.dropdownModal,
-                { backgroundColor: colors.card },
-              ]}
-            >
-              <TouchableOpacity
-                onPress={() => {
-                  setSelectedDestination('safe_balance');
-                  setSelectedPocket(null);
-                  setShowDestinationDropdown(false);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.dropdownItem,
-                    { color: colors.text },
-                  ]}
-                >
-                  Add to Safe Balance
-                </Text>
-              </TouchableOpacity>
+        {/* BUTTON */}
+        <TouchableOpacity
+          style={[
+            styles.continueButton,
+            !isAmountValid && { opacity: 0.5 },
+          ]}
+          disabled={!isAmountValid}
+          onPress={handleSubmit}
+        >
+          <Text style={styles.continueText}>Continue</Text>
+        </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => {
-                  setSelectedDestination('subtract');
-                  setSelectedPocket(null);
-                  setShowDestinationDropdown(false);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.dropdownItem,
-                    { color: colors.text },
-                  ]}
-                >
-                  Subtract Funds
-                </Text>
-              </TouchableOpacity>
+        {/* CONFIRM MODAL */}
+        <Modal transparent visible={showConfirmModal} animationType="fade">
+          <View style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.35)',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+            <View style={{
+              backgroundColor: colors.card,
+              padding: 20,
+              borderRadius: 24,
+              width: '85%',
+              maxWidth: 400,
+            }}>
+              <Text style={{
+                fontSize: 18,
+                fontWeight: '600',
+                marginBottom: 16,
+                color: colors.text,
+                textAlign: 'center',
+              }}>
+                Confirm Transaction
+              </Text>
 
-              <TouchableOpacity
-                onPress={() => {
-                  setSelectedDestination('pocket');
-                  setShowDestinationDropdown(false);
-                  setShowPocketDropdown(true);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.dropdownItem,
-                    { color: colors.text },
-                  ]}
-                >
-                  Pocket
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() =>
-                  setShowDestinationDropdown(false)
-                }
-              >
-                <Text
-                  style={[
-                    styles.dropdownCancel,
-                    { color: colors.textMuted },
-                  ]}
-                >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-
-        {/* POCKET DROPDOWN */}
-        <Modal transparent visible={showPocketDropdown}>
-          <View style={styles.modalOverlay}>
-            <View
-              style={[
-                styles.dropdownModal,
-                { backgroundColor: colors.card },
-              ]}
-            >
-              {pockets.map(p => (
-                <TouchableOpacity
-                  key={p.id}
-                  onPress={() => {
-                    setSelectedPocket(p.id);
-                    setShowPocketDropdown(false);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.dropdownItem,
-                      { color: colors.text },
-                    ]}
-                  >
-                    {p.name}
+              {/* Details Preview */}
+              <View style={{
+                backgroundColor: colors.background,
+                padding: 14,
+                borderRadius: 12,
+                borderLeftWidth: 4,
+                borderLeftColor: colors.icon,
+                marginBottom: 24,
+              }}>
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 4 }}>
+                    Safe Balance
                   </Text>
-                </TouchableOpacity>
-              ))}
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
+                    ₱{user?.balance.toFixed(2) || '0.00'} → ₱{((user?.balance || 0) - Number(fundAmount)).toFixed(2)}
+                  </Text>
+                </View>
 
-              <TouchableOpacity
-                onPress={() =>
-                  setShowPocketDropdown(false)
-                }
-              >
-                <Text
-                  style={[
-                    styles.dropdownCancel,
-                    { color: colors.textMuted },
-                  ]}
-                >
-                  Cancel
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 4 }}>
+                    {getDestinationName()}
+                  </Text>
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
+                    ₱{getDestinationBalance().toFixed(2)} → ₱{(getDestinationBalance() + Number(fundAmount)).toFixed(2)}
+                  </Text>
+                </View>
+
+                <View>
+                  <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 4 }}>
+                    Amount
+                  </Text>
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
+                    ₱{fundAmount}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Disclaimer */}
+              {selectedDestination === 'pocket' && selectedPocketId && (
+                <Text style={{
+                  fontSize: 12,
+                  color: colors.muted,
+                  marginBottom: 24,
+                  lineHeight: 16,
+                  textAlign: 'center',
+                }}>
+                  Note: Adding funds to a pocket will be deducted from your Safe Balance.
                 </Text>
-              </TouchableOpacity>
+              )}
+
+              {selectedDestination === 'safe_balance' && (
+                <Text style={{
+                  fontSize: 12,
+                  color: colors.muted,
+                  marginBottom: 24,
+                  lineHeight: 16,
+                  textAlign: 'center',
+                }}>
+                  Note: Adding funds to Safe Balance does not deduct from any pocket.
+                </Text>
+              )}
+
+              {/* Buttons */}
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <TouchableOpacity
+                  style={{
+                    flex: 1,
+                    backgroundColor: colors.border,
+                    paddingVertical: 14,
+                    borderRadius: 12,
+                    alignItems: 'center',
+                  }}
+                  onPress={() => setShowConfirmModal(false)}
+                >
+                  <Text style={{ color: colors.text, fontWeight: '600', fontSize: 15 }}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#0f4248',
+                    paddingVertical: 14,
+                    borderRadius: 12,
+                    alignItems: 'center',
+                  }}
+                  onPress={confirmTransaction}
+                >
+                  <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 15 }}>Confirm</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </Modal>
 
         {/* ERROR BOTTOM SHEET */}
         <Modal transparent visible={showErrorModal}>
-          <View style={styles.modalOverlay}>
+          <View style={[styles.modalOverlay, { justifyContent: 'center', alignItems: 'center' }]}>
             <View
               style={[
                 styles.successModalContent,
                 {
                   backgroundColor: colors.card,
-                  position: 'absolute',
-                  bottom: 0,
-                  width: '100%',
-                  borderTopLeftRadius: 24,
-                  borderTopRightRadius: 24,
+                  borderRadius: 24,
+                  width: '85%',
+                  maxWidth: 400,
                 },
               ]}
             >
@@ -463,11 +569,16 @@ const AddFundsScreen: React.FC = () => {
 
         {/* SUCCESS MODAL */}
         <Modal transparent visible={showSuccessModal}>
-          <View style={styles.modalOverlay}>
+          <View style={[styles.modalOverlay, { justifyContent: 'center', alignItems: 'center' }]}>
             <View
               style={[
                 styles.successModalContent,
-                { backgroundColor: colors.card },
+                { 
+                  backgroundColor: colors.card,
+                  borderRadius: 24,
+                  width: '85%',
+                  maxWidth: 400,
+                },
               ]}
             >
               <Image
@@ -489,15 +600,62 @@ const AddFundsScreen: React.FC = () => {
                 Transaction Successful!
               </Text>
 
+              {/* Transaction Details */}
+              {successTransaction && (
+                <View
+                  style={{
+                    width: '100%',
+                    backgroundColor: colors.background,
+                    borderRadius: 12,
+                    padding: 16,
+                    marginBottom: 20,
+                  }}
+                >
+                  <View style={{ marginBottom: 12 }}>
+                    <Text style={{ color: colors.textSecondary, fontSize: 13, marginBottom: 4 }}>
+                      Destination
+                    </Text>
+                    <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600' }}>
+                      {successTransaction.destinationName}
+                    </Text>
+                  </View>
+
+                  <View style={{ marginBottom: 12 }}>
+                    <Text style={{ color: colors.textSecondary, fontSize: 13, marginBottom: 4 }}>
+                      Amount
+                    </Text>
+                    <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600' }}>
+                      ₱{successTransaction.amount.toFixed(2)}
+                    </Text>
+                  </View>
+
+                  <View>
+                    <Text style={{ color: colors.textSecondary, fontSize: 13, marginBottom: 4 }}>
+                      Date
+                    </Text>
+                    <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600' }}>
+                      {new Date(successTransaction.date).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true,
+                      })}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
               <TouchableOpacity
                 style={styles.goHomeButton}
                 onPress={() => {
                   setShowSuccessModal(false);
-                  router.replace('/home');
+                  router.back();
                 }}
               >
                 <Text style={styles.goHomeButtonText}>
-                  Go to Dashboard
+                  Done
                 </Text>
               </TouchableOpacity>
             </View>

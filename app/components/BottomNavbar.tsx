@@ -75,7 +75,7 @@ export function BottomNavbar() {
 
       <NavItem
         label="Expenses"
-        route="/cards"
+        route="/expenses"
         icon="card-outline"
       />
 

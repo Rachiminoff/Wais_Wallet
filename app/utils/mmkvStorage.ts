@@ -84,6 +84,7 @@ const KEYS = {
   PASSWORD: 'user_password',
   IS_LOGGED_IN: 'is_logged_in',
   TRANSACTIONS: 'transactions_data',
+  EXPENSES: 'expenses_data',
 };
 
 /* ====================
@@ -270,11 +271,11 @@ export const savePockets = (pockets: Packet[]): void => {
 /* ====================
    CREATE POCKET
 ==================== */
-export const createPocket = (name: string, amount: number): void => {
+export const createPocket = (name: string, amount: number, deductFromSafeBalance: boolean = true): void => {
   const user = getUser();
   if (!user) throw new Error('No user');
-  if (amount <= 0) throw new Error('Invalid amount');
-  if (user.balance < amount) throw new Error('Insufficient safe balance');
+  if (amount < 0) throw new Error('Invalid amount');
+  if (deductFromSafeBalance && user.balance < amount) throw new Error('Insufficient safe balance');
 
   const pockets = getPockets();
   const newPocket: Packet = {
@@ -285,15 +286,28 @@ export const createPocket = (name: string, amount: number): void => {
 
   savePockets([...pockets, newPocket]);
 
-  user.balance -= amount;
-  saveUser(user);
+  if (deductFromSafeBalance && amount > 0) {
+    user.balance -= amount;
+    saveUser(user);
+  }
 
   updateMostCostlyPocket(newPocket.id, newPocket.name, amount);
-  recordTransaction(
-    'POCKET_CREATE',
-    amount,
-    `Created pocket "${newPocket.name}"`
-  );
+  
+  if (amount > 0) {
+    recordTransaction(
+      'POCKET_CREATE',
+      amount,
+      deductFromSafeBalance 
+        ? `Created pocket "${newPocket.name}" from Safe Balance`
+        : `Created pocket "${newPocket.name}"`
+    );
+  } else {
+    recordTransaction(
+      'POCKET_CREATE',
+      0,
+      `Created empty pocket "${newPocket.name}"`
+    );
+  }
 };
 
 /* ====================
@@ -321,7 +335,40 @@ export const addFundsToPocket = (
   recordTransaction(
     'POCKET_ADD_FUNDS',
     amount,
-    `Added funds to pocket "${pockets[index].name}"`
+    `Allocated to ${pockets[index].name} from Safe Balance`
+  );
+};
+
+export const allocateFromSafeToPocket = (
+  pocketId: string,
+  amount: number
+): void => {
+  if (amount <= 0) throw new Error('Invalid amount');
+
+  const user = getUser();
+  if (!user) throw new Error('No user');
+  if (user.balance < amount) throw new Error('Insufficient safe balance');
+
+  const pockets = getPockets();
+  const index = pockets.findIndex(p => p.id === pocketId);
+  if (index === -1) throw new Error('Pocket not found');
+
+  pockets[index].amount += amount;
+  user.balance -= amount;
+
+  savePockets(pockets);
+  saveUser(user);
+
+  updateMostCostlyPocket(
+    pockets[index].id,
+    pockets[index].name,
+    pockets[index].amount
+  );
+
+  recordTransaction(
+    'POCKET_ADD_FUNDS',
+    amount,
+    `Allocated to "${pockets[index].name}" from Safe Balance`
   );
 };
 
@@ -331,7 +378,8 @@ export const addFundsToPocket = (
 export const updatePocket = (
   pocketId: string,
   newName: string,
-  newAmount: number
+  newAmount: number,
+  adjustSafeBalance = false
 ): void => {
   const user = getUser();
   if (!user) throw new Error('No user');
@@ -341,9 +389,18 @@ export const updatePocket = (
   const index = pockets.findIndex(p => p.id === pocketId);
   if (index === -1) throw new Error('Pocket not found');
 
-  const diff = newAmount - pockets[index].amount;
-  if (diff > 0 && user.balance < diff)
-    throw new Error('Insufficient safe balance');
+  const oldName = pockets[index].name;
+  const oldAmount = pockets[index].amount;
+  const diff = newAmount - oldAmount;
+  const nameChanged = oldName !== newName.trim();
+  const amountChanged = diff !== 0;
+
+  if (adjustSafeBalance) {
+    if (diff > 0 && user.balance < diff)
+      throw new Error('Insufficient safe balance');
+
+    user.balance -= diff; // diff positive deducts, negative credits back
+  }
 
   pockets[index] = {
     ...pockets[index],
@@ -351,7 +408,6 @@ export const updatePocket = (
     amount: newAmount,
   };
 
-  user.balance -= diff;
   savePockets(pockets);
   saveUser(user);
 
@@ -360,6 +416,33 @@ export const updatePocket = (
     pockets[index].name,
     newAmount
   );
+
+  // Record transaction based on what changed
+  if (nameChanged && amountChanged) {
+    const safeBalanceText = adjustSafeBalance && diff !== 0 
+      ? (diff > 0 ? ' from Safe Balance' : ' transferred to Safe Balance')
+      : '';
+    recordTransaction(
+      'POCKET_ADD_FUNDS',
+      Math.abs(diff),
+      `Edited pocket "${oldName}" → "${newName}" (${diff > 0 ? '+' : '-'}₱${Math.abs(diff).toFixed(2)})${safeBalanceText}`
+    );
+  } else if (nameChanged) {
+    recordTransaction(
+      'POCKET_ADD_FUNDS',
+      0,
+      `Renamed pocket "${oldName}" → "${newName}"`
+    );
+  } else if (amountChanged) {
+    const safeBalanceText = adjustSafeBalance 
+      ? (diff > 0 ? ' from Safe Balance' : ' transferred to Safe Balance')
+      : '';
+    recordTransaction(
+      'POCKET_ADD_FUNDS',
+      Math.abs(diff),
+      `Edited pocket "${newName}" (${diff > 0 ? '+' : '-'}₱${Math.abs(diff).toFixed(2)})${safeBalanceText}`
+    );
+  }
 };
 
 /* ====================
@@ -413,6 +496,76 @@ export const transferFunds = (
     'POCKET_TO_SAFE',
     amount,
     `Transferred from "${pockets[index].name}" to safe`
+  );
+};
+
+/* ====================
+   EXPENSES
+==================== */
+export interface Expense {
+  id: string;
+  amount: number;
+  pocketId: string;
+  pocketName: string;
+  date: string;
+  note?: string;
+  createdAt: string;
+}
+
+export const getExpenses = (): Expense[] => {
+  const data = storage.getString(KEYS.EXPENSES);
+  return data ? JSON.parse(data) : [];
+};
+
+const saveExpenses = (expenses: Expense[]): void => {
+  storage.set(KEYS.EXPENSES, JSON.stringify(expenses));
+};
+
+export const addExpense = (
+  amount: number,
+  pocketId: string,
+  pocketName: string,
+  date: Date,
+  note?: string
+): void => {
+  if (amount <= 0) throw new Error('Invalid amount');
+
+  const user = getUser();
+  if (!user) throw new Error('No user');
+
+  // Deduct from safe balance or pocket
+  if (pocketId === 'safe_balance') {
+    if (user.balance < amount) throw new Error('Insufficient safe balance');
+    user.balance -= amount;
+    saveUser(user);
+  } else {
+    const pockets = getPockets();
+    const index = pockets.findIndex(p => p.id.toString() === pocketId);
+    if (index === -1) throw new Error('Pocket not found');
+    if (pockets[index].amount < amount) throw new Error('Insufficient pocket balance');
+    
+    pockets[index].amount -= amount;
+    savePockets(pockets);
+  }
+
+  const expenses = getExpenses();
+  const newExpense: Expense = {
+    id: `expense_${Date.now()}`,
+    amount,
+    pocketId,
+    pocketName,
+    date: date.toISOString(),
+    note,
+    createdAt: new Date().toISOString(),
+  };
+
+  saveExpenses([newExpense, ...expenses]);
+  bumpTotalSpent(amount);
+
+  recordTransaction(
+    'SUBTRACT_FUNDS',
+    amount,
+    `Expense from ${pocketName}${note ? `: ${note}` : ''}`
   );
 };
 

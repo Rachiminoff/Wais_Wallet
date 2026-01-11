@@ -20,9 +20,11 @@ export default function RootLayout() {
           <Stack.Screen name="cards" options={{ headerShown: false }} />
           <Stack.Screen name="BudgetScreen" options={{ headerShown: false }} />
           <Stack.Screen name="savings" options={{ headerShown: false }} />
+          <Stack.Screen name="expenses" options={{ headerShown: false }} />
 
           {/* Components */}
           <Stack.Screen name="components/addFunds" options={{ headerShown: false }} />
+          <Stack.Screen name="components/addExpense" options={{ headerShown: false }} />
           <Stack.Screen name="components/addPocket" options={{ headerShown: false }} />
           <Stack.Screen name="components/transfer" options={{ headerShown: false }} />
           <Stack.Screen name="components/EditPocketScreen" options={{ headerShown: false }} />

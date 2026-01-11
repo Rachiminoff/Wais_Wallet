@@ -35,6 +35,16 @@ export interface SavingsGoal {
   createdAt: string; // MMKV-friendly
 }
 
+export interface Expense {
+  id: string;
+  amount: number;
+  pocketId: string; // 'safe_balance' or pocket id
+  pocketName: string;
+  date: string; // ISO string
+  note?: string;
+  createdAt: string;
+}
+
 export interface StatsRecord {
   totalBalanceAllTime: number;
   totalSpentAllTime: number;

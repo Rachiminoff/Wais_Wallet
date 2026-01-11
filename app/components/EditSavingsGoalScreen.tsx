@@ -37,6 +37,7 @@ export default function EditSavingsGoalScreen() {
           style={{
             flex: 1,
             backgroundColor: colors.background,
+            paddingTop: 30,
             justifyContent: 'center',
             alignItems: 'center',
           }}
@@ -102,7 +103,7 @@ export default function EditSavingsGoalScreen() {
       <SafeAreaView
         style={[
           styles.safeArea,
-          { backgroundColor: colors.background },
+          { backgroundColor: colors.background, paddingTop: 30 },
         ]}
       >
         {/* ================= HEADER ================= */}
@@ -316,35 +317,27 @@ export default function EditSavingsGoalScreen() {
                 </Text>
               </View>
 
-              <View style={{ flexDirection: 'row', gap: 14 }}>
+              <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
                 <TouchableOpacity
-                  style={{
-                    flex: 1,
-                    backgroundColor: isDark ? '#2b2f36' : '#e6f0ec',
-                    paddingVertical: 16,
-                    borderRadius: 20,
-                    alignItems: 'center',
-                  }}
-                  onPress={() => setShowDelete(false)}
-                >
-                  <Text style={{ color: colors.text, fontWeight: '600' }}>
-                    Cancel
+                                  style={styles.cancelButton}
+                                  onPress={() => setShowDelete(false)}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.cancelText,
+                                      { color: colors.muted },
+                                    ]}
+                              >    
+                  Cancel
                   </Text>
                 </TouchableOpacity>
+        
 
                 <TouchableOpacity
-                  style={{
-                    flex: 1,
-                    backgroundColor: '#0f3d3e',
-                    paddingVertical: 16,
-                    borderRadius: 20,
-                    alignItems: 'center',
-                  }}
+                  style={[styles.sheetButton, { flex: 1, marginTop: 0 }]}
                   onPress={handleDelete}
                 >
-                  <Text style={{ color: '#fff', fontWeight: '700' }}>
-                    Confirm
-                  </Text>
+                  <Text style={styles.sheetButtonText}>Confirm</Text>
                 </TouchableOpacity>
               </View>
             </View>
