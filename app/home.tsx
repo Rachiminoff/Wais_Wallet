@@ -4,17 +4,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
-  Alert,
-  Dimensions,
-  Image,
-  KeyboardAvoidingView,
-  Modal,
-  SafeAreaView,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Dimensions,
+    Image,
+    KeyboardAvoidingView,
+    Modal,
+    SafeAreaView,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -28,10 +28,10 @@ import styles from './styles/HomeScreenStyles';
 import { Packet, User } from './types';
 
 import {
-  getCurrentTotalBalance,
-  getPockets,
-  getSavings,
-  getUser,
+    getCurrentTotalBalance,
+    getPockets,
+    getSavings,
+    getUser,
 } from './utils/mmkvStorage';
 
 const screenWidth = Dimensions.get('window').width;
@@ -369,7 +369,7 @@ export default function HomeScreen() {
               fontWeight: '700',
               color: colors.text,
               paddingTop: 20,
-              paddingHorizontal: 20,
+              paddingHorizontal: 24,
               paddingBottom: 12,
               letterSpacing: 0.5,
               textTransform: 'uppercase',
@@ -378,7 +378,7 @@ export default function HomeScreen() {
             MY POCKETS
           </Text>
           {pockets.length === 0 ? (
-            <Text style={{ paddingHorizontal: 20, paddingBottom: 20, color: colors.muted }}>
+            <Text style={{ paddingHorizontal: 24, paddingBottom: 20, color: colors.muted }}>
               No pockets yet
             </Text>
           ) : (
@@ -392,9 +392,6 @@ export default function HomeScreen() {
                   key={p.id}
                   style={[
                     styles.pocketRow,
-                    i === pockets.length - 1 && {
-                      borderBottomWidth: 0,
-                    },
                     { backgroundColor: colors.card },
                   ]}
                 >
@@ -514,6 +511,7 @@ export default function HomeScreen() {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
+                justifyContent: 'center',
                 paddingHorizontal: 18,
               }}
             >

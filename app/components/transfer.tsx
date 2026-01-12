@@ -19,9 +19,9 @@ import { Packet } from '../types';
 import {
     getPockets,
     getUser,
-    transferFunds,
-    saveUser,
     savePockets,
+    saveUser,
+    transferFunds,
 } from '../utils/mmkvStorage';
 
 /* ASSETS */
@@ -138,7 +138,7 @@ export default function TransferScreen() {
         saveUser(user);
         
         const { addFundsToPocket } = require('../utils/mmkvStorage');
-        addFundsToPocket(toPocket, value);
+        addFundsToPocket(toPocket, value, 'Safe Balance');
       } else if (fromPocket !== 'safe_balance' && toPocket === 'safe_balance') {
         // Transfer from pocket to safe balance
         transferFunds(fromPocket, value);
@@ -148,12 +148,13 @@ export default function TransferScreen() {
         const fromIndex = pockets.findIndex(p => p.id === fromPocket);
         if (fromIndex === -1) throw new Error('Source pocket not found');
         if (pockets[fromIndex].amount < value) throw new Error('Insufficient funds');
+        const sourceName = pockets[fromIndex].name;
         
         pockets[fromIndex].amount -= value;
         savePockets(pockets);
         
         const { addFundsToPocket } = require('../utils/mmkvStorage');
-        addFundsToPocket(toPocket, value);
+        addFundsToPocket(toPocket, value, sourceName);
       }
 
       setTransferredAmount(value);
@@ -183,7 +184,12 @@ export default function TransferScreen() {
         ]}
       >
         {/* ================= HEADER ================= */}
-        <View style={styles.header}>
+        <View
+          style={[
+            styles.header,
+            { backgroundColor: colors.background },
+          ]}
+        >
           <TouchableOpacity onPress={() => router.back()}>
             <Icon
               name="arrow-back"
@@ -191,16 +197,25 @@ export default function TransferScreen() {
               color={colors.text}
             />
           </TouchableOpacity>
+
+          <Text
+            style={[
+              styles.title,
+              { color: colors.text },
+            ]}
+          >
+            Transfer
+          </Text>
+
+          <View style={{ width: 24 }} />
         </View>
 
-        <Text
+        <View
           style={[
-            styles.title,
-            { color: colors.text, marginTop: 30 },
+            styles.divider,
+            { backgroundColor: colors.border },
           ]}
-        >
-          Transfer
-        </Text>
+        />
 
         {/* FROM */}
         <View style={[styles.formGroup, showFromDropdown && { marginBottom: 0 }]}>
@@ -677,7 +692,7 @@ export default function TransferScreen() {
                 }}
               >
                 <Text style={styles.modalButtonText}>
-                  Go to Dashboard
+                  Back
                 </Text>
               </TouchableOpacity>
             </View>

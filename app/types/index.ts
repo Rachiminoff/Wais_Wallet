@@ -33,6 +33,7 @@ export interface SavingsGoal {
   targetAmount: number;
   currentAmount: number;
   createdAt: string; // MMKV-friendly
+  archived?: boolean;
 }
 
 export interface Expense {

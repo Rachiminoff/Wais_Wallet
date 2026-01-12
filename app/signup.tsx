@@ -28,20 +28,33 @@ export default function SignupScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
-    // Clear error message when user starts typing
-    if (error) {
+    // Clear error message when user starts typing (but not when showing success)
+    if (error && !success) {
       clearError();
     }
   }, [name, email, password, confirmPassword]);
 
-  // Clear form after successful signup
+  // Clear form after successful signup with delay
   useEffect(() => {
     if (success) {
-      setName('');
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
-      setValidationErrors({});
+      const timer = setTimeout(() => {
+        setName('');
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+        setValidationErrors({});
+      }, 100);
+
+      // Auto-hide success message after 5 seconds
+      const hideTimer = setTimeout(() => {
+        setSuccess(false);
+        setSuccessMessage('');
+      }, 5000);
+
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(hideTimer);
+      };
     }
   }, [success]);
 
@@ -97,7 +110,7 @@ export default function SignupScreen() {
         }
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      const errorMessage = (err && typeof err === 'object' && 'message' in err) ? String(err.message) : 'An unexpected error occurred';
       
       // Check if error is about duplicate email
       if (errorMessage.includes('Email already registered') || errorMessage.includes('EMAIL_ALREADY_EXISTS')) {

@@ -14,8 +14,9 @@ export default StyleSheet.create({
   header: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 10,
+    paddingBottom: 16,
     marginTop: 40,
+    marginBottom: 4,
   },
 
   content: {
@@ -24,28 +25,70 @@ export default StyleSheet.create({
   },
 
   title: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 4,
+    letterSpacing: 0.5,
   },
 
   addButton: {
     backgroundColor: '#1C2B3A',
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 14,
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 5,
   },
 
   addButtonText: {
     color: '#FFF',
-    fontSize: 15,
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+
+  editButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    borderWidth: 1,
+  },
+
+  editButtonText: {
+    fontSize: 14,
     fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+
+  historyButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    borderWidth: 1,
+  },
+
+  historyButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
 
   filterRow: {
     flexDirection: 'row',
     gap: 8,
+    marginTop: 5,
     marginBottom: 20,
   },
 
@@ -109,6 +152,14 @@ export default StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#FF3B30',
+  },
+
+  toastMessage: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    alignItems: 'center',
   },
 
   bottomNavbar: {

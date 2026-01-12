@@ -102,32 +102,25 @@ export const AllocationHealthChart: React.FC<Props> = ({
         style={{
           flexDirection: 'row',
           alignItems: 'center',
+          justifyContent: 'center',
           paddingHorizontal: 18,
         }}
       >
-        {/* LOCKED CHART WIDTH */}
-        <View
-          style={{
-            width: CHART_CONTAINER_WIDTH,
-            alignItems: 'center',
+        <PieChart
+          data={data}
+          width={CHART_SIZE}
+          height={CHART_SIZE}
+          accessor="amount"
+          backgroundColor="transparent"
+          hasLegend={false}
+          center={[CHART_CENTER_X, 0]}
+          chartConfig={{
+            color: () => colors.text,
           }}
-        >
-          <PieChart
-            data={data}
-            width={CHART_SIZE}
-            height={CHART_SIZE}
-            accessor="amount"
-            backgroundColor="transparent"
-            hasLegend={false}
-            center={[CHART_CENTER_X, 0]}
-            chartConfig={{
-              color: () => colors.text,
-            }}
-          />
-        </View>
+        />
 
         {/* LEGEND */}
-        <View style={{ marginLeft: 12, flex: 1 }}>
+        <View style={{ marginLeft: 24 }}>
           {data.map(item => {
             const percent = Math.round(
               (item.amount / total) * 100

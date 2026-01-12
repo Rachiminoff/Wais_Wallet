@@ -1,13 +1,13 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Image,
-  Modal,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    Modal,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -18,22 +18,22 @@ import { formatInputAmount, validateAmount } from '../scripts/home';
 import styles from '../styles/addFundsStyle';
 
 import {
-  DestinationType,
-  Packet,
-  Transaction,
-  User,
+    DestinationType,
+    Packet,
+    Transaction,
+    User,
 } from '../types';
 
 import {
-  addFundsToPocket,
-  addToBalance,
-  getPockets,
-  getUser,
+    addFundsToPocket,
+    addToBalance,
+    getPockets,
+    getUser,
 } from '../utils/mmkvStorage';
 
 const AddFundsScreen: React.FC = () => {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, font } = useTheme();
 
   /* ====================
      STATE
@@ -202,32 +202,75 @@ const AddFundsScreen: React.FC = () => {
         ]}
       >
         {/* HEADER */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
+        <View
+          style={[
+            styles.header,
+            { backgroundColor: colors.background },
+          ]}
+        >
+          <TouchableOpacity 
+            onPress={() => router.back()}
+          >
             <Icon
               name="arrow-back"
               size={24}
               color={colors.text}
             />
           </TouchableOpacity>
+
+          <Text
+            style={[
+              styles.headerTitle,
+              { color: colors.text, fontSize: font + 4, fontWeight: '700' },
+            ]}
+          >
+            Add Funds
+          </Text>
+
+          <View style={{ width: 24 }} />
         </View>
 
-        <Text
+        <View
           style={[
-            styles.sectionLabel,
-            { 
-              color: colors.text, 
-              marginTop: 30, 
-              fontSize: 20, 
-              fontWeight: '700',
-              marginHorizontal: 16,
-              marginBottom: 24,
-              textTransform: 'none',
-              letterSpacing: 0,
-            },
-          ]}>
-          Add Funds
-        </Text>
+            styles.divider,
+            { backgroundColor: colors.border },
+          ]}
+        />
+
+        {/* DISCLAIMER */}
+        <View style={{ 
+          paddingHorizontal: 20, 
+          marginBottom: 20,
+          marginTop: 8,
+        }}>
+          <View style={{
+            backgroundColor: '#f0f9ff',
+            padding: 16,
+            borderRadius: 14,
+            borderWidth: 1,
+            borderColor: '#bae6fd',
+            flexDirection: 'row',
+            alignItems: 'center',
+            shadowColor: '#0284c7',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.05,
+            shadowRadius: 4,
+            elevation: 1,
+          }}>
+            <Text style={{ fontSize: 18, marginRight: 12 }}>💰</Text>
+            <Text
+              style={{
+                flex: 1,
+                fontSize: 13,
+                color: '#0c4a6e',
+                lineHeight: 19,
+                fontWeight: '500',
+              }}
+            >
+              Adding funds is for topping up your balance. It does not deduct from any pocket.
+            </Text>
+          </View>
+        </View>
 
         {/* SELECT POCKET */}
         <View style={[styles.formGroup, showDestinationDropdown && { marginBottom: 0 }]}>
@@ -351,34 +394,8 @@ const AddFundsScreen: React.FC = () => {
             placeholderTextColor={colors.textMuted}
             value={fundAmount}
             onChangeText={handleFundAmountChange}
+            maxLength={60}
           />
-
-          {/* Disclaimers */}
-          {selectedDestination === 'pocket' && selectedPocketId && (
-            <Text
-              style={{
-                fontSize: 12,
-                color: colors.textSecondary,
-                marginTop: 8,
-                lineHeight: 16,
-              }}
-            >
-              Note: Adding funds to a pocket will be deducted from your Safe Balance.
-            </Text>
-          )}
-
-          {selectedDestination === 'safe_balance' && (
-            <Text
-              style={{
-                fontSize: 12,
-                color: colors.textSecondary,
-                marginTop: 8,
-                lineHeight: 16,
-              }}
-            >
-              Note: Adding funds to Safe Balance does not deduct from any pocket.
-            </Text>
-          )}
         </View>
 
         {/* BUTTON */}
@@ -409,9 +426,9 @@ const AddFundsScreen: React.FC = () => {
               maxWidth: 400,
             }}>
               <Text style={{
-                fontSize: 18,
-                fontWeight: '600',
-                marginBottom: 16,
+                fontSize: 20,
+                fontWeight: '700',
+                marginBottom: 20,
                 color: colors.text,
                 textAlign: 'center',
               }}>
@@ -420,92 +437,121 @@ const AddFundsScreen: React.FC = () => {
 
               {/* Details Preview */}
               <View style={{
-                backgroundColor: colors.background,
-                padding: 14,
-                borderRadius: 12,
-                borderLeftWidth: 4,
-                borderLeftColor: colors.icon,
+                backgroundColor: '#f8fafc',
+                padding: 18,
+                borderRadius: 16,
                 marginBottom: 24,
+                borderWidth: 1,
+                borderColor: '#e2e8f0',
               }}>
-                <View style={{ marginBottom: 16 }}>
-                  <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 4 }}>
-                    Safe Balance
-                  </Text>
-                  <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
-                    ₱{user?.balance.toFixed(2) || '0.00'} → ₱{((user?.balance || 0) - Number(fundAmount)).toFixed(2)}
-                  </Text>
-                </View>
+                {selectedDestination === 'safe_balance' && (
+                  <View style={{ 
+                    marginBottom: 16,
+                    paddingBottom: 16,
+                    borderBottomWidth: 1,
+                    borderBottomColor: '#e2e8f0',
+                  }}>
+                    <Text style={{ 
+                      fontSize: 12, 
+                      color: colors.muted, 
+                      marginBottom: 6,
+                      fontWeight: '600',
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                    }}>
+                      Safe Balance
+                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: '#64748b' }}>
+                        ₱{user?.balance.toFixed(2) || '0.00'}
+                      </Text>
+                      <Text style={{ marginHorizontal: 8, color: '#94a3b8', fontSize: 16 }}>→</Text>
+                      <Text style={{ fontSize: 16, fontWeight: '700', color: '#0f4248' }}>
+                        ₱{((user?.balance || 0) + Number(fundAmount)).toFixed(2)}
+                      </Text>
+                    </View>
+                  </View>
+                )}
 
-                <View style={{ marginBottom: 16 }}>
-                  <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 4 }}>
-                    {getDestinationName()}
-                  </Text>
-                  <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
-                    ₱{getDestinationBalance().toFixed(2)} → ₱{(getDestinationBalance() + Number(fundAmount)).toFixed(2)}
-                  </Text>
-                </View>
+                {selectedDestination === 'pocket' && selectedPocketId && (
+                  <View style={{ 
+                    marginBottom: 16,
+                    paddingBottom: 16,
+                    borderBottomWidth: 1,
+                    borderBottomColor: '#e2e8f0',
+                  }}>
+                    <Text style={{ 
+                      fontSize: 12, 
+                      color: colors.muted, 
+                      marginBottom: 6,
+                      fontWeight: '600',
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                    }}>
+                      {getDestinationName()}
+                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: '#64748b' }}>
+                        ₱{getDestinationBalance().toFixed(2)}
+                      </Text>
+                      <Text style={{ marginHorizontal: 8, color: '#94a3b8', fontSize: 16 }}>→</Text>
+                      <Text style={{ fontSize: 16, fontWeight: '700', color: '#0f4248' }}>
+                        ₱{(getDestinationBalance() + Number(fundAmount)).toFixed(2)}
+                      </Text>
+                    </View>
+                  </View>
+                )}
 
                 <View>
-                  <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 4 }}>
-                    Amount
+                  <Text style={{ 
+                    fontSize: 12, 
+                    color: colors.muted, 
+                    marginBottom: 6,
+                    fontWeight: '600',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                  }}>
+                    Amount to Add
                   </Text>
-                  <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
-                    ₱{fundAmount}
+                  <Text style={{ fontSize: 20, fontWeight: '700', color: '#0f4248' }}>
+                    +₱{fundAmount}
                   </Text>
                 </View>
               </View>
 
-              {/* Disclaimer */}
-              {selectedDestination === 'pocket' && selectedPocketId && (
-                <Text style={{
-                  fontSize: 12,
-                  color: colors.muted,
-                  marginBottom: 24,
-                  lineHeight: 16,
-                  textAlign: 'center',
-                }}>
-                  Note: Adding funds to a pocket will be deducted from your Safe Balance.
-                </Text>
-              )}
-
-              {selectedDestination === 'safe_balance' && (
-                <Text style={{
-                  fontSize: 12,
-                  color: colors.muted,
-                  marginBottom: 24,
-                  lineHeight: 16,
-                  textAlign: 'center',
-                }}>
-                  Note: Adding funds to Safe Balance does not deduct from any pocket.
-                </Text>
-              )}
-
               {/* Buttons */}
-              <View style={{ flexDirection: 'row', gap: 10 }}>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
                 <TouchableOpacity
                   style={{
                     flex: 1,
-                    backgroundColor: colors.border,
-                    paddingVertical: 14,
-                    borderRadius: 12,
+                    backgroundColor: '#f1f5f9',
+                    paddingVertical: 15,
+                    borderRadius: 14,
                     alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: '#e2e8f0',
                   }}
                   onPress={() => setShowConfirmModal(false)}
                 >
-                  <Text style={{ color: colors.text, fontWeight: '600', fontSize: 15 }}>Cancel</Text>
+                  <Text style={{ color: '#475569', fontWeight: '600', fontSize: 15 }}>Cancel</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={{
                     flex: 1,
                     backgroundColor: '#0f4248',
-                    paddingVertical: 14,
-                    borderRadius: 12,
+                    paddingVertical: 15,
+                    borderRadius: 14,
                     alignItems: 'center',
+                    shadowColor: '#0f4248',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 4,
+                    elevation: 3,
                   }}
                   onPress={confirmTransaction}
                 >
-                  <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 15 }}>Confirm</Text>
+                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Confirm</Text>
                 </TouchableOpacity>
               </View>
             </View>

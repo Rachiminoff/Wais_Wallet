@@ -9,15 +9,29 @@ const styles = StyleSheet.create({
     padding: 20,
   },
 
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+  },
+
   backButton: {
     marginBottom: 20,
   },
 
   headerTitle: {
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: '600',
     color: PRIMARY,
-    marginBottom: 30,
+  },
+
+  divider: {
+    height: 1,
+    marginHorizontal: 20,
+    backgroundColor: '#E5E7EB',
+    marginBottom: 20,
   },
 
   formGroup: {

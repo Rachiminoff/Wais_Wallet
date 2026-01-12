@@ -1,16 +1,16 @@
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Image,
-  Modal,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    Modal,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 import { ThemeWrapper } from '../components/ThemeWrapper';
@@ -20,19 +20,19 @@ import { formatInputAmount, validateAmount } from '../scripts/home';
 import styles from '../styles/addFundsStyle';
 
 import {
-  Packet,
-  User,
+    Packet,
+    User,
 } from '../types';
 
 import {
-  getPockets,
-  getUser,
-  addExpense,
+    addExpense,
+    getPockets,
+    getUser,
 } from '../utils/mmkvStorage';
 
 const AddExpenseScreen: React.FC = () => {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, font } = useTheme();
 
   /* ====================
      STATE
@@ -139,15 +139,40 @@ const AddExpenseScreen: React.FC = () => {
         ]}
       >
         {/* HEADER */}
-        <View style={[styles.header, { marginTop: 40 }]}>
-          <TouchableOpacity onPress={() => router.back()}>
+        <View
+          style={[
+            styles.header,
+            { backgroundColor: colors.background },
+          ]}
+        >
+          <TouchableOpacity 
+            onPress={() => router.back()}
+          >
             <Icon
               name="arrow-back"
               size={24}
               color={colors.text}
             />
           </TouchableOpacity>
+
+          <Text
+            style={[
+              styles.headerTitle,
+              { color: colors.text, fontSize: font + 4, fontWeight: '700' },
+            ]}
+          >
+            Add Expense
+          </Text>
+
+          <View style={{ width: 24 }} />
         </View>
+
+        <View
+          style={[
+            styles.divider,
+            { backgroundColor: colors.border },
+          ]}
+        />
 
         <ScrollView
           style={[
@@ -155,152 +180,201 @@ const AddExpenseScreen: React.FC = () => {
             { backgroundColor: colors.background },
           ]}
         >
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: '600',
-              color: colors.text,
-              marginBottom: 24,
-            }}
-          >
-            Add Expense
-          </Text>
+          <View style={styles.formGroup}>
+            <Text
+              style={[
+                styles.sectionLabel,
+                { color: colors.text },
+              ]}>
+              Amount
+            </Text>
 
-          <Text
-            style={[
-              styles.sectionLabel,
-              { color: colors.text },
-            ]}>
-            Amount
-          </Text>
+            <TextInput
+              style={[
+                styles.inputContainer,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  color: colors.text,
+                  paddingVertical: 18,
+                  paddingHorizontal: 16,
+                },
+              ]}
+              value={expenseAmount}
+              onChangeText={handleExpenseAmountChange}
+              keyboardType="decimal-pad"
+              placeholder="Enter amount"
+              placeholderTextColor={colors.muted}
+              maxLength={60}
+            />
+          </View>
 
-          <TextInput
-            style={[
-              styles.inputContainer,
-              {
-                backgroundColor: colors.card,
-                borderColor: colors.border,
-                color: colors.text,
-                paddingVertical: 18,
-                paddingHorizontal: 16,
-              },
-            ]}
-            value={expenseAmount}
-            onChangeText={handleExpenseAmountChange}
-            keyboardType="decimal-pad"
-            placeholder="Enter amount"
-            placeholderTextColor={colors.muted}
-          />
+          <View style={[styles.formGroup, showPocketDropdown && { marginBottom: 0 }]}>
+            <Text
+              style={[
+                styles.sectionLabel,
+                { color: colors.text },
+              ]}
+            >
+              Pocket
+            </Text>
 
-          <Text
-            style={[
-              styles.sectionLabel,
-              { color: colors.text },
-            ]}
-          >
-            Pocket
-          </Text>
-
-          <TouchableOpacity
-            style={[
-              styles.inputContainer,
-              {
-                backgroundColor: colors.card,
-                borderColor: colors.border,
-              },
-            ]}
-            onPress={() => setShowPocketDropdown(true)}
-          >
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <TouchableOpacity
+              style={[
+                styles.inputContainer,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  borderBottomLeftRadius: showPocketDropdown ? 0 : 10,
+                  borderBottomRightRadius: showPocketDropdown ? 0 : 10,
+                },
+              ]}
+              onPress={() => setShowPocketDropdown(!showPocketDropdown)}
+            >
               <Text
                 style={[
                   styles.dropdownSelectedText,
-                  { color: selectedPocket ? colors.text : colors.muted, flex: 1 },
+                  { color: selectedPocket ? colors.text : colors.muted },
                 ]}
               >
                 {selectedPocket ? getPocketName(selectedPocket) : 'Select Pocket'}
               </Text>
-              {selectedPocket && (
-                <Text
-                  style={[
-                    styles.dropdownSelectedText,
-                    { color: colors.text, marginRight: 8 },
-                  ]}
+              <Icon
+                name={showPocketDropdown ? "chevron-up" : "chevron-down"}
+                size={20}
+                color={colors.text}
+              />
+            </TouchableOpacity>
+
+            {/* DROPDOWN MENU */}
+            {showPocketDropdown && (
+              <View
+                style={[
+                  styles.dropdownList,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <ScrollView
+                  style={styles.dropdownScroll}
+                  nestedScrollEnabled={true}
+                  showsVerticalScrollIndicator={true}
                 >
-                  ₱{getPocketAmount(selectedPocket).toFixed(2)}
-                </Text>
-              )}
-            </View>
-            <Icon
-              name="chevron-down"
-              size={20}
-              color={colors.text}
-            />
-          </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.dropdownListItem}
+                    onPress={() => {
+                      setSelectedPocket('safe_balance');
+                      setShowPocketDropdown(false);
+                    }}
+                  >
+                    <Text style={[styles.dropdownListItemText, { color: colors.text }]}>
+                      Safe Balance
+                    </Text>
+                    <Text style={[styles.dropdownListItemAmount, { color: colors.text }]}>
+                      ₱{(user?.balance ?? 0).toFixed(2)}
+                    </Text>
+                  </TouchableOpacity>
 
-          <Text
-            style={[
-              styles.sectionLabel,
-              { color: colors.text },
-            ]}
-          >
-            Date
-          </Text>
+                  {pockets.map(pocket => (
+                    <TouchableOpacity
+                      key={pocket.id}
+                      style={styles.dropdownListItem}
+                      onPress={() => {
+                        setSelectedPocket(pocket.id);
+                        setShowPocketDropdown(false);
+                      }}
+                    >
+                      <Text style={[styles.dropdownListItemText, { color: colors.text }]}>
+                        {pocket.name}
+                      </Text>
+                      <Text style={[styles.dropdownListItemAmount, { color: colors.text }]}>
+                        ₱{pocket.amount.toFixed(2)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </View>
 
-          <TouchableOpacity
-            style={[
-              styles.inputContainer,
-              {
-                backgroundColor: colors.card,
-                borderColor: colors.border,
-              },
-            ]}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Text style={{ color: colors.text, flex: 1 }}>
-              {expenseDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })}
+          <View style={styles.formGroup}>
+            <Text
+              style={[
+                styles.sectionLabel,
+                { color: colors.text },
+              ]}
+            >
+              Date
             </Text>
-            <Icon
-              name="calendar-outline"
-              size={20}
-              color={colors.text}
+
+            <TouchableOpacity
+              style={[
+                styles.inputContainer,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                },
+              ]}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Text style={{ color: colors.text, flex: 1 }}>
+                {expenseDate.toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </Text>
+              <Icon
+                name="calendar-outline"
+                size={20}
+                color={colors.text}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text
+              style={[
+                styles.sectionLabel,
+                { color: colors.text },
+              ]}
+            >
+              Note (optional)
+            </Text>
+
+            <TextInput
+              style={[
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  borderWidth: 1,
+                  borderRadius: 14,
+                  color: colors.text,
+                  padding: 16,
+                  minHeight: 100,
+                  textAlignVertical: 'top',
+                },
+              ]}
+              placeholder="Enter note (max 60 characters)"
+              placeholderTextColor={colors.muted}
+              value={note}
+              onChangeText={setNote}
+              multiline
+              maxLength={60}
             />
-          </TouchableOpacity>
+            <Text style={{ 
+              fontSize: 11, 
+              color: colors.muted, 
+              marginTop: 4, 
+              textAlign: 'right' 
+            }}>
+              {note.length}/60
+            </Text>
+          </View>
 
-          <Text
-            style={[
-              styles.sectionLabel,
-              { color: colors.text },
-            ]}
-          >
-            Note (optional)
-          </Text>
-
-          <TextInput
-            style={[
-              {
-                backgroundColor: colors.card,
-                borderColor: colors.border,
-                borderWidth: 1,
-                borderRadius: 14,
-                color: colors.text,
-                padding: 16,
-                minHeight: 100,
-                textAlignVertical: 'top',
-              },
-            ]}
-            placeholder="Enter note"
-            placeholderTextColor={colors.muted}
-            value={note}
-            onChangeText={setNote}
-            multiline
-          />
-
-          <View style={{ flexDirection: 'row', gap: 12, marginTop: 40, marginBottom: 60 }}>
+          <View style={{ flexDirection: 'row', gap: 12, marginTop: 40 }}>
             <TouchableOpacity
               style={{
                 flex: 1,
@@ -428,67 +502,6 @@ const AddExpenseScreen: React.FC = () => {
                   <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 15 }}>Confirm</Text>
                 </TouchableOpacity>
               </View>
-            </View>
-          </View>
-        </Modal>
-
-        {/* POCKET DROPDOWN */}
-        <Modal transparent visible={showPocketDropdown}>
-          <View style={styles.modalOverlay}>
-            <View
-              style={[
-                styles.dropdownModal,
-                { backgroundColor: colors.card },
-              ]}
-            >
-              <TouchableOpacity
-                key="safe_balance"
-                onPress={() => {
-                  setSelectedPocket('safe_balance');
-                  setShowPocketDropdown(false);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.dropdownItem,
-                    { color: colors.text },
-                  ]}
-                >
-                  Safe Balance
-                </Text>
-              </TouchableOpacity>
-              
-              {pockets.map((pocket) => (
-                <TouchableOpacity
-                  key={pocket.id}
-                  onPress={() => {
-                    setSelectedPocket(pocket.id);
-                    setShowPocketDropdown(false);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.dropdownItem,
-                      { color: colors.text },
-                    ]}
-                  >
-                    {pocket.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-
-              <TouchableOpacity
-                onPress={() => setShowPocketDropdown(false)}
-              >
-                <Text
-                  style={[
-                    styles.dropdownCancel,
-                    { color: colors.muted },
-                  ]}
-                >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
             </View>
           </View>
         </Modal>

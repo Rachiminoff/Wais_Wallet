@@ -1,11 +1,11 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Modal,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Modal,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -16,7 +16,7 @@ import { createPocket, getUser } from '../utils/mmkvStorage';
 
 export default function AddPocket() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, font } = useTheme();
 
   const [pocketName, setPocketName] = useState('');
   const [fundAmount, setFundAmount] = useState('');
@@ -56,7 +56,12 @@ export default function AddPocket() {
         ]}
       >
         {/* ================= HEADER ================= */}
-        <View style={styles.header}>
+        <View
+          style={[
+            styles.header,
+            { backgroundColor: colors.background },
+          ]}
+        >
           <TouchableOpacity onPress={() => router.back()}>
             <Icon
               name="arrow-back"
@@ -64,23 +69,25 @@ export default function AddPocket() {
               color={colors.text}
             />
           </TouchableOpacity>
+
+          <Text
+            style={[
+              styles.headerTitle,
+              { color: colors.text, fontSize: font + 4, fontWeight: '700' },
+            ]}
+          >
+            Add Pocket
+          </Text>
+
+          <View style={{ width: 24 }} />
         </View>
 
-        <Text
+        <View
           style={[
-            styles.headerTitle,
-            { 
-              color: colors.text,
-              marginTop: 30,
-              fontSize: 20,
-              fontWeight: '700',
-              marginHorizontal: 16,
-              marginBottom: 24,
-            },
+            styles.divider,
+            { backgroundColor: colors.border },
           ]}
-        >
-          Add Pocket
-        </Text>
+        />
 
         {/* ================= FORM ================= */}
         <View style={[styles.formGroup, { paddingHorizontal: 20 }]}>
@@ -184,21 +191,26 @@ export default function AddPocket() {
         <Modal transparent visible={showConfirm} animationType="fade">
           <View style={{
             flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.35)',
+            backgroundColor: 'rgba(0,0,0,0.5)',
             justifyContent: 'center',
             alignItems: 'center',
           }}>
             <View style={{
               backgroundColor: colors.card,
-              padding: 20,
-              borderRadius: 24,
-              width: '85%',
+              padding: 24,
+              borderRadius: 20,
+              width: '88%',
               maxWidth: 400,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.2,
+              shadowRadius: 8,
+              elevation: 5,
             }}>
               <Text style={{
-                fontSize: 18,
-                fontWeight: '600',
-                marginBottom: 16,
+                fontSize: 20,
+                fontWeight: '700',
+                marginBottom: 20,
                 color: colors.text,
                 textAlign: 'center',
               }}>
@@ -206,39 +218,76 @@ export default function AddPocket() {
               </Text>
 
               <View style={{
-                backgroundColor: colors.background,
-                padding: 14,
-                borderRadius: 12,
-                borderLeftWidth: 4,
-                borderLeftColor: colors.icon,
+                backgroundColor: '#f8fafc',
+                padding: 18,
+                borderRadius: 16,
                 marginBottom: 24,
+                borderWidth: 1,
+                borderColor: '#e2e8f0',
               }}>
-                <View style={{ marginBottom: 16 }}>
-                  <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 4 }}>
+                <View style={{ 
+                  marginBottom: 16,
+                  paddingBottom: 16,
+                  borderBottomWidth: 1,
+                  borderBottomColor: '#e2e8f0',
+                }}>
+                  <Text style={{ 
+                    fontSize: 12, 
+                    color: colors.muted, 
+                    marginBottom: 6,
+                    fontWeight: '600',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                  }}>
                     Pocket Name
                   </Text>
-                  <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: '#0f4248' }}>
                     {pocketName}
                   </Text>
                 </View>
 
-                <View style={{ marginBottom: 16 }}>
-                  <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 4 }}>
+                <View style={{ 
+                  marginBottom: deductFromSafeBalance ? 16 : 0,
+                  paddingBottom: deductFromSafeBalance ? 16 : 0,
+                  borderBottomWidth: deductFromSafeBalance ? 1 : 0,
+                  borderBottomColor: '#e2e8f0',
+                }}>
+                  <Text style={{ 
+                    fontSize: 12, 
+                    color: colors.muted, 
+                    marginBottom: 6,
+                    fontWeight: '600',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                  }}>
                     Initial Amount
                   </Text>
-                  <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
+                  <Text style={{ fontSize: 20, fontWeight: '700', color: '#0f4248' }}>
                     ₱{parseFloat(fundAmount).toFixed(2)}
                   </Text>
                 </View>
 
                 {deductFromSafeBalance && (
                   <View>
-                    <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 4 }}>
+                    <Text style={{ 
+                      fontSize: 12, 
+                      color: colors.muted, 
+                      marginBottom: 6,
+                      fontWeight: '600',
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                    }}>
                       Safe Balance
                     </Text>
-                    <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
-                      ₱{safeBalance.toFixed(2)} → ₱{(safeBalance - parseFloat(fundAmount || '0')).toFixed(2)}
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: '#64748b' }}>
+                        ₱{safeBalance.toFixed(2)}
+                      </Text>
+                      <Text style={{ marginHorizontal: 8, color: '#94a3b8', fontSize: 16 }}>→</Text>
+                      <Text style={{ fontSize: 16, fontWeight: '700', color: '#0f4248' }}>
+                        ₱{(safeBalance - parseFloat(fundAmount || '0')).toFixed(2)}
+                      </Text>
+                    </View>
                   </View>
                 )}
               </View>
@@ -255,31 +304,38 @@ export default function AddPocket() {
                 </Text>
               )}
 
-              <View style={{ flexDirection: 'row', gap: 10 }}>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
                 <TouchableOpacity
                   style={{
                     flex: 1,
-                    backgroundColor: colors.border,
-                    paddingVertical: 14,
-                    borderRadius: 12,
+                    backgroundColor: '#f1f5f9',
+                    paddingVertical: 15,
+                    borderRadius: 14,
                     alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: '#e2e8f0',
                   }}
                   onPress={() => setShowConfirm(false)}
                 >
-                  <Text style={{ color: colors.text, fontWeight: '600', fontSize: 15 }}>Cancel</Text>
+                  <Text style={{ color: '#475569', fontWeight: '600', fontSize: 15 }}>Cancel</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={{
                     flex: 1,
                     backgroundColor: '#0f4248',
-                    paddingVertical: 14,
-                    borderRadius: 12,
+                    paddingVertical: 15,
+                    borderRadius: 14,
                     alignItems: 'center',
+                    shadowColor: '#0f4248',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 4,
+                    elevation: 3,
                   }}
                   onPress={handleConfirm}
                 >
-                  <Text style={{ color: '#fff', fontWeight: '600', fontSize: 15 }}>Confirm</Text>
+                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Confirm</Text>
                 </TouchableOpacity>
               </View>
             </View>

@@ -1,17 +1,17 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Modal,
-  SafeAreaView,
-  ScrollView,
-  Text,
-  TextInput,
-  Switch,
-  TouchableOpacity,
-  View,
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Modal,
+    SafeAreaView,
+    ScrollView,
+    Switch,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -19,15 +19,15 @@ import { useTheme } from '../context/ThemeContext';
 import styles from '../styles/editPocketStyles';
 import { Packet } from '../types';
 import {
-  deletePocket,
-  getPockets,
-  getUser,
-  updatePocket,
+    deletePocket,
+    getPockets,
+    getUser,
+    updatePocket,
 } from '../utils/mmkvStorage';
 
 export default function EditPocketScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, font } = useTheme();
 
   const [pockets, setPockets] = useState<Packet[]>([]);
   const [selectedPocket, setSelectedPocket] =
@@ -164,7 +164,7 @@ export default function EditPocketScreen() {
         <Text
           style={[
             styles.headerTitle,
-            { color: colors.text },
+            { color: colors.text, fontSize: font + 4, fontWeight: '700' },
           ]}
         >
           Edit Pocket
@@ -172,6 +172,13 @@ export default function EditPocketScreen() {
 
         <View style={{ width: 24 }} />
       </View>
+
+      <View
+        style={[
+          styles.divider,
+          { backgroundColor: colors.border },
+        ]}
+      />
 
       {/* TABLE HEADER */}
       <View

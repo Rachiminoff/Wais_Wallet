@@ -20,7 +20,7 @@ import { ThemeWrapper } from './components/ThemeWrapper';
 import { useTheme } from './context/ThemeContext';
 import styles from './styles/budgetStyles';
 import { Packet, User } from './types';
-import { getPockets, getUser, allocateFromSafeToPocket, getTransactions } from './utils/mmkvStorage';
+import { allocateFromSafeToPocket, getPockets, getTransactions, getUser } from './utils/mmkvStorage';
 
 export default function BudgetScreen() {
   const router = useRouter();
@@ -41,8 +41,6 @@ export default function BudgetScreen() {
   const [showAllocateModal, setShowAllocateModal] = useState(false);
   const [showAllocateConfirmModal, setShowAllocateConfirmModal] = useState(false);
   const [showAllocateSuccessModal, setShowAllocateSuccessModal] = useState(false);
-
-  const [showTransactionsModal, setShowTransactionsModal] = useState(false);
 
   /* ====================
      LOAD DATA
@@ -218,9 +216,10 @@ export default function BudgetScreen() {
         {/* ACTION BUTTONS */}
         <View style={styles.buttonRow}>
           <TouchableOpacity
-            style={styles.primaryButton}
+            style={[styles.primaryButton, styles.addFundsButton]}
             onPress={() => router.push('/components/addFunds')}
           >
+            <Icon name="add-circle" size={22} color="#FFF" />
             <Text
               style={[
                 styles.primaryButtonText,
@@ -232,9 +231,10 @@ export default function BudgetScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.primaryButton}
+            style={[styles.primaryButton, styles.addPocketButton]}
             onPress={() => router.push('/components/addPocket')}
           >
+            <Icon name="wallet" size={22} color="#FFF" />
             <Text
               style={[
                 styles.primaryButtonText,
@@ -244,21 +244,33 @@ export default function BudgetScreen() {
               Add Pocket
             </Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.primaryButton, { flex: 0.8 }]}
-            onPress={() => setShowTransactionsModal(true)}
-          >
-            <Text
-              style={[
-                styles.primaryButtonText,
-                { fontFamily: font.family },
-              ]}
-            >
-              History
-            </Text>
-          </TouchableOpacity>
         </View>
+
+        {/* TRANSACTION HISTORY BUTTON */}
+        <TouchableOpacity
+          style={[{
+            paddingVertical: 14,
+            paddingHorizontal: 12,
+            borderRadius: 14,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 16,
+            borderWidth: 1,
+            flexDirection: 'row',
+            gap: 8,
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+          }]}
+          onPress={() => router.push('/components/transactions')}
+        >
+          <Icon name="time-outline" size={22} color={colors.text} />
+          <Text style={[{
+            fontSize: 14,
+            fontWeight: '600',
+            letterSpacing: 0.3,
+            color: colors.text,
+          }]}>Transaction History</Text>
+        </TouchableOpacity>
 
         {/* SAFE BALANCE */}
         <View style={[styles.card, { backgroundColor: colors.card }]}>
@@ -839,89 +851,6 @@ export default function BudgetScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
-
-      {/* TRANSACTIONS HISTORY MODAL */}
-      <Modal transparent visible={showTransactionsModal} animationType="slide">
-        <ThemeWrapper>
-          <View style={{ flex: 1 }}>
-            {/* Header */}
-            <View style={{
-              backgroundColor: colors.card,
-              paddingTop: 50,
-              paddingBottom: 16,
-              paddingHorizontal: 16,
-              borderBottomWidth: 1,
-              borderBottomColor: colors.border,
-            }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text }}>
-                  Transaction History
-                </Text>
-                <TouchableOpacity
-                  onPress={() => setShowTransactionsModal(false)}
-                  hitSlop={15}
-                >
-                  <Icon name="close" size={24} color={colors.icon} />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Transactions List */}
-            <ScrollView
-              contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12 }}
-              showsVerticalScrollIndicator={false}
-            >
-              {getTransactions().length === 0 ? (
-                <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }}>
-                  <Text style={{ color: colors.muted, fontSize: 14 }}>No transactions yet</Text>
-                </View>
-              ) : (
-                getTransactions().slice(0, 50).map((tx) => {
-                  const isEdit = tx.type === 'SAVINGS_EDIT' || tx.description.toLowerCase().includes('edit');
-                  const isIncome = (tx.type === 'ADD_FUNDS' || tx.type === 'POCKET_ADD_FUNDS') && !isEdit;
-                  const borderColor = isEdit ? '#FF8C00' : isIncome ? colors.primary : '#FF6B6B';
-                  const amountColor = isEdit ? '#FF8C00' : isIncome ? colors.primary : '#FF6B6B';
-                  const prefix = isEdit ? '~' : isIncome ? '+' : '-';
-                  
-                  return (
-                    <View
-                      key={tx.id}
-                      style={{
-                        backgroundColor: '#ffffff',
-                        borderRadius: 12,
-                        padding: 14,
-                        marginBottom: 10,
-                        borderLeftWidth: 4,
-                        borderLeftColor: borderColor,
-                      }}
-                    >
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <View style={{ flex: 1 }}>
-                          <Text style={{ color: colors.text, fontWeight: '600', marginBottom: 4, fontSize: 13 }}>
-                            {tx.description}
-                          </Text>
-                          <Text style={{ color: colors.muted, fontSize: 12 }}>
-                            {new Date(tx.createdAt).toLocaleDateString('en-PH')}
-                          </Text>
-                        </View>
-                        <Text
-                          style={{
-                            color: amountColor,
-                            fontWeight: '600',
-                            fontSize: 13,
-                          }}
-                        >
-                          {prefix}₱{tx.amount.toFixed(2)}
-                        </Text>
-                      </View>
-                    </View>
-                  );
-                })
-              )}
-            </ScrollView>
-          </View>
-        </ThemeWrapper>
       </Modal>
 
       {/* BOTTOM NAV (REUSABLE COMPONENT) */}

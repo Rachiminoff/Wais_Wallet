@@ -48,6 +48,7 @@ export interface Transaction {
   amount: number;
   description: string;
   createdAt: string;
+  archived?: boolean;
 }
 
 /* ====================
@@ -115,6 +116,24 @@ const recordTransaction = (
   };
 
   saveTransactions([tx, ...txs]);
+};
+
+export const archiveTransaction = (transactionId: string): void => {
+  const txs = getTransactions();
+  const index = txs.findIndex(tx => tx.id === transactionId);
+  if (index !== -1) {
+    txs[index].archived = true;
+    saveTransactions(txs);
+  }
+};
+
+export const unarchiveTransaction = (transactionId: string): void => {
+  const txs = getTransactions();
+  const index = txs.findIndex(tx => tx.id === transactionId);
+  if (index !== -1) {
+    txs[index].archived = false;
+    saveTransactions(txs);
+  }
 };
 
 /* ====================
@@ -295,7 +314,7 @@ export const createPocket = (name: string, amount: number, deductFromSafeBalance
   
   if (amount > 0) {
     recordTransaction(
-      'POCKET_CREATE',
+      deductFromSafeBalance ? 'POCKET_CREATE_FROM_SAFE' : 'POCKET_CREATE',
       amount,
       deductFromSafeBalance 
         ? `Created pocket "${newPocket.name}" from Safe Balance`
@@ -315,7 +334,8 @@ export const createPocket = (name: string, amount: number, deductFromSafeBalance
 ==================== */
 export const addFundsToPocket = (
   pocketId: string,
-  amount: number
+  amount: number,
+  sourceLabel?: string
 ): void => {
   if (amount <= 0) throw new Error('Invalid amount');
 
@@ -332,11 +352,11 @@ export const addFundsToPocket = (
     pockets[index].amount
   );
 
-  recordTransaction(
-    'POCKET_ADD_FUNDS',
-    amount,
-    `Allocated to ${pockets[index].name} from Safe Balance`
-  );
+  const description = sourceLabel
+    ? `Transferred to "${pockets[index].name}" from ${sourceLabel === 'Safe Balance' ? 'Safe Balance' : `"${sourceLabel}"`}`
+    : `Added funds to "${pockets[index].name}"`;
+
+  recordTransaction('POCKET_ADD_FUNDS', amount, description);
 };
 
 export const allocateFromSafeToPocket = (
@@ -368,7 +388,7 @@ export const allocateFromSafeToPocket = (
   recordTransaction(
     'POCKET_ADD_FUNDS',
     amount,
-    `Allocated to "${pockets[index].name}" from Safe Balance`
+    `Transferred to "${pockets[index].name}" from Safe Balance`
   );
 };
 
@@ -495,7 +515,7 @@ export const transferFunds = (
   recordTransaction(
     'POCKET_TO_SAFE',
     amount,
-    `Transferred from "${pockets[index].name}" to safe`
+    `Transferred to Safe Balance from "${pockets[index].name}"`
   );
 };
 
@@ -510,6 +530,7 @@ export interface Expense {
   date: string;
   note?: string;
   createdAt: string;
+  archived?: boolean;
 }
 
 export const getExpenses = (): Expense[] => {
@@ -569,6 +590,56 @@ export const addExpense = (
   );
 };
 
+export const deleteExpense = (expenseId: string): void => {
+  const expenses = getExpenses();
+  const expense = expenses.find(e => e.id === expenseId);
+  
+  if (!expense) throw new Error('Expense not found');
+
+  const user = getUser();
+  if (!user) throw new Error('No user');
+
+  if (expense.pocketId === 'safe_balance') {
+    user.balance += expense.amount;
+    saveUser(user);
+  } else {
+    const pockets = getPockets();
+    const index = pockets.findIndex(p => p.id.toString() === expense.pocketId);
+    if (index !== -1) {
+      pockets[index].amount += expense.amount;
+      savePockets(pockets);
+    }
+  }
+
+  const filtered = expenses.filter(e => e.id !== expenseId);
+  saveExpenses(filtered);
+
+  // Record transaction for deletion
+  recordTransaction(
+    'ADD_FUNDS',
+    expense.amount,
+    `Deleted expense from ${expense.pocketName} - Amount refunded`
+  );
+};
+
+export const archiveExpense = (expenseId: string): void => {
+  const expenses = getExpenses();
+  const index = expenses.findIndex(e => e.id === expenseId);
+  if (index !== -1) {
+    expenses[index].archived = true;
+    saveExpenses(expenses);
+  }
+};
+
+export const unarchiveExpense = (expenseId: string): void => {
+  const expenses = getExpenses();
+  const index = expenses.findIndex(e => e.id === expenseId);
+  if (index !== -1) {
+    expenses[index].archived = false;
+    saveExpenses(expenses);
+  }
+};
+
 /* ====================
    SAVINGS
 ==================== */
@@ -587,14 +658,36 @@ export const saveSavings = (savings: SavingsGoal[]): void => {
 export const createSavingsGoal = (
   name: string,
   targetAmount: number,
-  startingAmount: number
+  startingAmount: number,
+  sourcePocketId?: string
 ): void => {
   const user = getUser();
   if (!user) throw new Error('No user');
   if (targetAmount <= 0) throw new Error('Invalid target');
   if (startingAmount < 0) throw new Error('Invalid amount');
-  if (user.balance < startingAmount)
-    throw new Error('Insufficient safe balance');
+
+  let sourceName = 'Safe Balance';
+
+  if (startingAmount > 0) {
+    if (sourcePocketId && sourcePocketId !== 'safe_balance') {
+      // Deduct from pocket
+      const pockets = getPockets();
+      const pocketIndex = pockets.findIndex(p => p.id === sourcePocketId);
+      if (pocketIndex === -1) throw new Error('Pocket not found');
+      if (pockets[pocketIndex].amount < startingAmount)
+        throw new Error('Insufficient pocket balance');
+      
+      pockets[pocketIndex].amount -= startingAmount;
+      savePockets(pockets);
+      sourceName = pockets[pocketIndex].name;
+    } else {
+      // Deduct from safe balance
+      if (user.balance < startingAmount)
+        throw new Error('Insufficient safe balance');
+      user.balance -= startingAmount;
+      saveUser(user);
+    }
+  }
 
   const savings = getSavings();
 
@@ -608,20 +701,25 @@ export const createSavingsGoal = (
 
   saveSavings([...savings, newGoal]);
 
-  user.balance -= startingAmount;
-  saveUser(user);
-
   updateMostExpensiveSavings(
     newGoal.id,
     newGoal.name,
     newGoal.targetAmount
   );
 
-  recordTransaction(
-    'SAVINGS_CREATE',
-    startingAmount,
-    `Created savings goal "${newGoal.name}"`
-  );
+  if (startingAmount > 0) {
+    recordTransaction(
+      'SAVINGS_CREATE',
+      startingAmount,
+      `Created savings goal "${newGoal.name}" from ${sourceName === 'Safe Balance' ? 'Safe Balance' : `"${sourceName}"`}`
+    );
+  } else {
+    recordTransaction(
+      'SAVINGS_CREATE',
+      0,
+      `Created savings goal "${newGoal.name}"`
+    );
+  }
 };
 
 /* ====================
@@ -629,29 +727,44 @@ export const createSavingsGoal = (
 ==================== */
 export const addToSavings = (
   savingsId: string,
-  amount: number
+  amount: number,
+  sourcePocketId?: string | number
 ): void => {
   if (amount <= 0) throw new Error('Invalid amount');
-
-  const user = getUser();
-  if (!user) throw new Error('No user');
-  if (user.balance < amount)
-    throw new Error('Insufficient safe balance');
 
   const savings = getSavings();
   const index = savings.findIndex(s => s.id === savingsId);
   if (index === -1) throw new Error('Savings goal not found');
 
+  let sourceName = 'Safe Balance';
+
+  // If source is a pocket, deduct from pocket
+  if (sourcePocketId && sourcePocketId !== 'safe_balance') {
+    const pockets = getPockets();
+    const pocketIndex = pockets.findIndex(p => p.id === sourcePocketId);
+    if (pocketIndex === -1) throw new Error('Pocket not found');
+    if (pockets[pocketIndex].amount < amount) throw new Error('Insufficient pocket balance');
+
+    pockets[pocketIndex].amount -= amount;
+    savePockets(pockets);
+    sourceName = pockets[pocketIndex].name;
+  } else {
+    // Deduct from safe balance
+    const user = getUser();
+    if (!user) throw new Error('No user');
+    if (user.balance < amount) throw new Error('Insufficient safe balance');
+
+    user.balance -= amount;
+    saveUser(user);
+  }
+
   savings[index].currentAmount += amount;
   saveSavings(savings);
-
-  user.balance -= amount;
-  saveUser(user);
 
   recordTransaction(
     'SAVINGS_ADD',
     amount,
-    `Added to savings "${savings[index].name}"`
+    `Added to savings "${savings[index].name}" from ${sourceName}`
   );
 };
 
@@ -712,6 +825,36 @@ export const deleteSavingsGoal = (
 };
 
 /* ====================
+   ARCHIVE SAVINGS GOAL
+==================== */
+export const archiveSavingsGoal = (savingsId: string): void => {
+  const savings = getSavings();
+  const goal = savings.find(s => s.id === savingsId);
+  if (!goal) throw new Error('Savings goal not found');
+
+  goal.archived = true;
+  saveSavings(savings);
+
+  recordTransaction(
+    'SAVINGS_COMPLETE',
+    goal.currentAmount,
+    `Completed savings goal "${goal.name}"`
+  );
+};
+
+/* ====================
+   UNARCHIVE SAVINGS GOAL
+==================== */
+export const unarchiveSavingsGoal = (savingsId: string): void => {
+  const savings = getSavings();
+  const goal = savings.find(s => s.id === savingsId);
+  if (!goal) throw new Error('Savings goal not found');
+
+  goal.archived = false;
+  saveSavings(savings);
+};
+
+/* ====================
    UPDATE SAVINGS AMOUNT
 ==================== */
 export const updateSavingsAmount = (
@@ -752,14 +895,16 @@ export const registerUser = (
   password: string,
   name: string
 ): User => {
-  if (storage.getString(KEYS.EMAIL))
+  const existingEmail = storage.getString(KEYS.EMAIL);
+  if (existingEmail && existingEmail === email.toLowerCase()) {
     throw new Error('Email already registered');
+  }
 
   const user: User = {
     id: `user_${Date.now()}`,
     name: name.trim(),
     email: email.toLowerCase(),
-    balance: 15000,
+    balance: 0,
     currency: 'PHP',
     createdAt: new Date(),
     isGuest: false,
@@ -773,6 +918,7 @@ export const registerUser = (
   savePockets([]);
   saveSavings([]);
   saveTransactions([]);
+  saveExpenses([]);
   saveStats({
     totalBalanceAllTime: user.balance,
     totalSpentAllTime: 0,

@@ -9,34 +9,47 @@ export default StyleSheet.create({
   header: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 10,
+    paddingBottom: 16,
     marginTop: 40,
+    marginBottom: 4,
   },
 
   title: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 4,
+    letterSpacing: 0.5,
   },
 
   buttonRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 10,
+    gap: 12,
+    marginBottom: 28,
+    marginTop: 12,
   },
 
   primaryButton: {
     flex: 1,
     backgroundColor: '#1C2B3A',
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 14,
     alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 5,
   },
 
   primaryButtonText: {
     color: '#FFF',
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
 
   content: {
@@ -46,58 +59,65 @@ export default StyleSheet.create({
 
   card: {
     backgroundColor: '#FFF',
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 14,
     marginTop: 10,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
 
   cardLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#000',
-    marginBottom: 6,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    marginBottom: 8,
+    letterSpacing: 0.2,
+    opacity: 0.7,
   },
 
   mutedText: {
     color: '#8E8E93',
     fontWeight: '400',
+    fontSize: 13,
   },
 
   balanceText: {
-    fontSize: 20,
-    fontWeight: '600',
+    fontSize: 28,
+    fontWeight: '700',
     color: '#000',
+    letterSpacing: -0.5,
   },
 
   divider: {
     height: 1,
     backgroundColor: '#E5E5EA',
-    marginVertical: 10,
-    marginHorizontal: 4,
+    marginVertical: 12,
+    marginHorizontal: 0,
+    opacity: 0.6,
   },
 
   pocketHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
 
   pocketRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 2,
   },
 
   pocketName: {
     fontSize: 14,
-    color: '#000',
+    color: '#1C1C1E',
+    fontWeight: '500',
   },
 
   pocketAmount: {

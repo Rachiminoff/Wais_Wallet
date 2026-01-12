@@ -18,16 +18,22 @@ export default StyleSheet.create({
 
   header: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 8,
+    alignItems: 'center',
+    padding: 20,
+    justifyContent: 'space-between',
+  },
+
+  divider: {
+    height: 1,
+    marginHorizontal: 20,
+    backgroundColor: '#E5E7EB',
+    marginBottom: 20,
   },
 
   title: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: TEXT,
-    marginHorizontal: 16, 
-    marginBottom: 24,
   },
 
   /* =====================

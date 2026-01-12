@@ -25,7 +25,7 @@ import {
 export default function EditSavingsGoalScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { colors, isDark } = useTheme();
+  const { colors, font, isDark } = useTheme();
 
   const savings = getSavings();
   const goal = savings.find(g => g.id === id);
@@ -122,7 +122,7 @@ export default function EditSavingsGoalScreen() {
           <Text
             style={[
               styles.headerTitle,
-              { color: colors.text },
+              { color: colors.text, fontSize: font + 4, fontWeight: '700' },
             ]}
           >
             Edit Savings Goal
@@ -165,81 +165,66 @@ export default function EditSavingsGoalScreen() {
           <Text style={[styles.label, { color: colors.muted }]}>
             Target Amount
           </Text>
-          <View
+          <TextInput
             style={[
-              styles.currencyInput,
+              styles.input,
               {
-                backgroundColor: colors.card, // ✅ FIX
+                backgroundColor: colors.card,
                 borderColor: colors.border,
+                color: colors.text,
               },
             ]}
-          >
-            <Text style={{ color: colors.muted, marginRight: 6 }}>₱</Text>
-            <TextInput
-              style={[styles.inputInner, { color: colors.text }]}
-              keyboardType="numeric"
-              value={targetAmount}
-              onChangeText={setTargetAmount}
-              placeholderTextColor={colors.muted}
-            />
-          </View>
+            keyboardType="numeric"
+            placeholder="0.00"
+            value={targetAmount}
+            onChangeText={setTargetAmount}
+            placeholderTextColor={colors.muted}
+          />
 
           <Text style={[styles.label, { color: colors.muted }]}>
             Current Amount
           </Text>
-          <View
+          <TextInput
             style={[
-              styles.currencyInput,
+              styles.input,
               {
-                backgroundColor: colors.card, // ✅ FIX
+                backgroundColor: colors.card,
                 borderColor: colors.border,
+                color: colors.text,
               },
             ]}
-          >
-            <Text style={{ color: colors.muted, marginRight: 6 }}>₱</Text>
-            <TextInput
-              style={[styles.inputInner, { color: colors.text }]}
-              keyboardType="numeric"
-              value={currentAmount}
-              onChangeText={setCurrentAmount}
-              placeholderTextColor={colors.muted}
-            />
-          </View>
+            keyboardType="numeric"
+            placeholder="0.00"
+            value={currentAmount}
+            onChangeText={setCurrentAmount}
+            placeholderTextColor={colors.muted}
+          />
 
           {!!errorMessage && (
             <Text style={{ color: colors.danger }}>
               {errorMessage}
             </Text>
           )}
-        </View>
 
-        {/* ================= FOOTER ================= */}
-        <View
-          style={[
-            styles.footer,
-            { backgroundColor: colors.background }, // ✅ FIX
-          ]}
-        >
+          {/* ================= SAVE BUTTON ================= */}
           <TouchableOpacity
-            style={[
-              styles.cancelButton,
-              { backgroundColor: colors.card },
-            ]}
-            onPress={() => router.back()}
-          >
-            <Text style={{ color: colors.text }}>Cancel</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.saveButton}
+            style={{
+              backgroundColor: '#1C2B3A',
+              borderRadius: 18,
+              paddingVertical: 18,
+              alignItems: 'center',
+              marginTop: 28,
+            }}
             onPress={proceedSave}
           >
-            <Text style={styles.saveText}>Save</Text>
+            <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '700' }}>
+              Save
+            </Text>
           </TouchableOpacity>
         </View>
 
         {/* ================= CONFIRM MODAL ================= */}
-        <Modal transparent visible={showConfirm} animationType="slide">
+        <Modal transparent visible={showConfirm} animationType="fade">
           <View style={styles.sheetOverlay}>
             <View
               style={[
@@ -255,6 +240,32 @@ export default function EditSavingsGoalScreen() {
               <Text style={[styles.sheetTitle, { color: colors.text }]}>
                 Confirm Changes
               </Text>
+
+              <View style={[styles.sheetMessageBox, { backgroundColor: colors.background, width: '100%' }]}>
+                {name !== goal.name && (
+                  <View style={{ marginBottom: 12 }}>
+                    <Text style={{ fontSize: 12, color: colors.muted, marginBottom: 4 }}>Goal Name</Text>
+                    <Text style={{ fontSize: 14, color: colors.text, fontWeight: '600' }}>{name}</Text>
+                  </View>
+                )}
+                {Number(targetAmount) !== goal.targetAmount && (
+                  <View style={{ marginBottom: 12 }}>
+                    <Text style={{ fontSize: 12, color: colors.muted, marginBottom: 4 }}>Target Amount</Text>
+                    <Text style={{ fontSize: 14, color: colors.text, fontWeight: '600' }}>₱{Number(targetAmount).toLocaleString()}</Text>
+                  </View>
+                )}
+                {Number(currentAmount) !== goal.currentAmount && (
+                  <View style={{ marginBottom: 12 }}>
+                    <Text style={{ fontSize: 12, color: colors.muted, marginBottom: 4 }}>Current Amount</Text>
+                    <Text style={{ fontSize: 14, color: colors.text, fontWeight: '600' }}>
+                      ₱{Number(currentAmount).toLocaleString()} 
+                      <Text style={{ color: Number(currentAmount) > goal.currentAmount ? '#4CAF50' : '#EF4444' }}>
+                        {' '}({Number(currentAmount) > goal.currentAmount ? '+' : ''}₱{(Number(currentAmount) - goal.currentAmount).toLocaleString()})
+                      </Text>
+                    </Text>
+                  </View>
+                )}
+              </View>
 
               <TouchableOpacity
                 style={styles.sheetButton}
@@ -274,7 +285,7 @@ export default function EditSavingsGoalScreen() {
         </Modal>
 
         {/* ================= DELETE MODAL ================= */}
-        <Modal transparent visible={showDelete} animationType="slide">
+        <Modal transparent visible={showDelete} animationType="fade">
           <View style={styles.sheetOverlay}>
             <View
               style={[

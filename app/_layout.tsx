@@ -29,7 +29,6 @@ export default function RootLayout() {
           <Stack.Screen name="components/transfer" options={{ headerShown: false }} />
           <Stack.Screen name="components/EditPocketScreen" options={{ headerShown: false }} />
           <Stack.Screen name="components/NewSavingsGoalScreen" options={{ headerShown: false }} />
-          <Stack.Screen name="components/AddToSavingsScreen" options={{ headerShown: false }} />
           <Stack.Screen name="components/EditSavingsGoalScreen" options={{ headerShown: false }} />
           <Stack.Screen name="components/transactions" options={{ headerShown: false }} />
           <Stack.Screen name="components/faq" options={{ headerShown: false }} />

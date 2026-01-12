@@ -126,18 +126,20 @@ export default StyleSheet.create({
   sheetOverlay: {
     flex: 1,
     backgroundColor: OVERLAY,
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   /* ================= BOTTOM SHEET ================= */
   sheet: {
     backgroundColor: CARD,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
+    borderRadius: 28,
     paddingTop: 28,
     paddingBottom: 36,
     paddingHorizontal: 24,
     alignItems: 'center',
+    width: '85%',
+    maxWidth: 400,
   },
 
   sheetImage: {

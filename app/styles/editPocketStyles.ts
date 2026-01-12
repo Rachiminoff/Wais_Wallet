@@ -14,18 +14,21 @@ export default StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    padding: 20,
     justifyContent: 'space-between',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
 
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: PRIMARY,
-    letterSpacing: -0.3,
+  },
+
+  divider: {
+    height: 1,
+    marginHorizontal: 20,
+    backgroundColor: '#E5E7EB',
+    marginBottom: 20,
   },
 
   /* ====================

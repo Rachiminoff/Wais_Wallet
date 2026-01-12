@@ -17,8 +17,23 @@ const styles = StyleSheet.create({
   /* ================= HEADER ================= */
   header: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 8,
+    alignItems: 'center',
+    padding: 20,
+    justifyContent: 'space-between',
+    position: 'relative',
+  },
+
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: PRIMARY,
+  },
+
+  divider: {
+    height: 1,
+    marginHorizontal: 20,
+    backgroundColor: '#E5E7EB',
+    marginBottom: 20,
   },
 
   /* ================= CONTAINER ================= */
@@ -29,12 +44,11 @@ const styles = StyleSheet.create({
 
   /* ================= SECTION ================= */
   sectionLabel: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: PRIMARY,
-    marginBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    marginBottom: 12,
+    paddingBottom: 5,
   },
 
   /* ================= FORM ================= */
