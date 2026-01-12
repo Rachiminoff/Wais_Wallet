@@ -1,11 +1,10 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
-  Animated,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -15,7 +14,7 @@ import { ThemeWrapper } from './components/ThemeWrapper';
 import { useTheme } from './context/ThemeContext';
 import styles from './styles/expensesStyles';
 import { User } from './types';
-import { getExpenses, getUser, type Expense, archiveExpense, unarchiveExpense } from './utils/mmkvStorage';
+import { archiveExpense, getExpenses, getUser, unarchiveExpense, type Expense } from './utils/mmkvStorage';
 
 export default function ExpensesScreen() {
   const router = useRouter();
@@ -180,20 +179,44 @@ export default function ExpensesScreen() {
 
         {/* TRANSACTION HISTORY BUTTON */}
         <TouchableOpacity
-          style={[styles.historyButton, { flexDirection: 'row', gap: 8, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.card, borderColor: colors.border }]}
+          style={{
+            paddingVertical: 14,
+            paddingHorizontal: 12,
+            borderRadius: 14,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 16,
+            borderWidth: 1.5,
+            flexDirection: 'row',
+            gap: 8,
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+          }}
           onPress={() => router.push('/components/transactions')}
         >
-          <Icon name="time-outline" size={22} color={colors.text} />
-          <Text style={[styles.historyButtonText, { color: colors.text }]}>Transaction History</Text>
+          <Icon name="time-outline" size={20} color={colors.text} />
+          <Text style={{ fontSize: 14, fontWeight: '600', letterSpacing: 0.3, color: colors.text }}>Transaction History</Text>
         </TouchableOpacity>
 
         {/* SHOW ARCHIVED TOGGLE */}
         <TouchableOpacity
-          style={[styles.historyButton, { flexDirection: 'row', gap: 8, justifyContent: 'center', alignItems: 'center', backgroundColor: showArchived ? '#1C2B3A' : colors.card, borderColor: colors.border }]}
+          style={{
+            paddingVertical: 14,
+            paddingHorizontal: 12,
+            borderRadius: 14,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 16,
+            borderWidth: 1.5,
+            flexDirection: 'row',
+            gap: 8,
+            backgroundColor: showArchived ? '#1C2B3A' : colors.card,
+            borderColor: showArchived ? '#1C2B3A' : colors.border,
+          }}
           onPress={() => setShowArchived(!showArchived)}
         >
-          <Icon name={showArchived ? 'archive' : 'archive-outline'} size={22} color={showArchived ? '#FFF' : colors.text} />
-          <Text style={[styles.historyButtonText, { color: showArchived ? '#FFF' : colors.text }]}>{showArchived ? 'Showing Archived' : 'Show Archived'}</Text>
+          <Icon name={showArchived ? 'archive' : 'archive-outline'} size={20} color={showArchived ? '#FFF' : colors.text} />
+          <Text style={{ fontSize: 14, fontWeight: '600', letterSpacing: 0.3, color: showArchived ? '#FFF' : colors.text }}>{showArchived ? 'Showing Archived' : 'Show Archived'}</Text>
         </TouchableOpacity>
 
         {/* ARCHIVED MESSAGE TOAST */}

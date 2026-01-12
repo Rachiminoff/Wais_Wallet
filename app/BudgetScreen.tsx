@@ -20,7 +20,7 @@ import { ThemeWrapper } from './components/ThemeWrapper';
 import { useTheme } from './context/ThemeContext';
 import styles from './styles/budgetStyles';
 import { Packet, User } from './types';
-import { allocateFromSafeToPocket, getPockets, getTransactions, getUser } from './utils/mmkvStorage';
+import { allocateFromSafeToPocket, getPockets, getUser } from './utils/mmkvStorage';
 
 export default function BudgetScreen() {
   const router = useRouter();
@@ -248,28 +248,28 @@ export default function BudgetScreen() {
 
         {/* TRANSACTION HISTORY BUTTON */}
         <TouchableOpacity
-          style={[{
+          style={{
             paddingVertical: 14,
             paddingHorizontal: 12,
             borderRadius: 14,
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: 16,
-            borderWidth: 1,
+            borderWidth: 1.5,
             flexDirection: 'row',
             gap: 8,
             backgroundColor: colors.card,
             borderColor: colors.border,
-          }]}
+          }}
           onPress={() => router.push('/components/transactions')}
         >
-          <Icon name="time-outline" size={22} color={colors.text} />
-          <Text style={[{
+          <Icon name="time-outline" size={20} color={colors.text} />
+          <Text style={{
             fontSize: 14,
             fontWeight: '600',
             letterSpacing: 0.3,
             color: colors.text,
-          }]}>Transaction History</Text>
+          }}>Transaction History</Text>
         </TouchableOpacity>
 
         {/* SAFE BALANCE */}

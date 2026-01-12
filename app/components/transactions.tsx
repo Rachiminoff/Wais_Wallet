@@ -1,5 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Animated, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -241,7 +240,8 @@ export default function TransactionsScreen() {
         <TouchableOpacity
           style={[
             styles.filterButton,
-            filter === 'ALL' && { backgroundColor: '#0f4248' },
+            { backgroundColor: colors.card, borderColor: colors.border },
+            filter === 'ALL' && { backgroundColor: '#0f4248', borderColor: '#0f4248' },
           ]}
           onPress={() => setFilter('ALL')}
         >
@@ -256,7 +256,8 @@ export default function TransactionsScreen() {
         <TouchableOpacity
           style={[
             styles.filterButton,
-            filter === 'INCOME' && { backgroundColor: '#2ecc71' },
+            { backgroundColor: colors.card, borderColor: colors.border },
+            filter === 'INCOME' && { backgroundColor: '#2ecc71', borderColor: '#2ecc71' },
           ]}
           onPress={() => setFilter('INCOME')}
         >
@@ -271,7 +272,8 @@ export default function TransactionsScreen() {
         <TouchableOpacity
           style={[
             styles.filterButton,
-            filter === 'EXPENSE' && { backgroundColor: '#e74c3c' },
+            { backgroundColor: colors.card, borderColor: colors.border },
+            filter === 'EXPENSE' && { backgroundColor: '#e74c3c', borderColor: '#e74c3c' },
           ]}
           onPress={() => setFilter('EXPENSE')}
         >
@@ -286,7 +288,8 @@ export default function TransactionsScreen() {
         <TouchableOpacity
           style={[
             styles.filterButton,
-            filter === 'POCKETS' && { backgroundColor: '#3b82f6' },
+            { backgroundColor: colors.card, borderColor: colors.border },
+            filter === 'POCKETS' && { backgroundColor: '#3b82f6', borderColor: '#3b82f6' },
           ]}
           onPress={() => setFilter('POCKETS')}
         >
@@ -301,7 +304,8 @@ export default function TransactionsScreen() {
         <TouchableOpacity
           style={[
             styles.filterButton,
-            filter === 'SAVINGS' && { backgroundColor: '#f59e0b' },
+            { backgroundColor: colors.card, borderColor: colors.border },
+            filter === 'SAVINGS' && { backgroundColor: '#f59e0b', borderColor: '#f59e0b' },
           ]}
           onPress={() => setFilter('SAVINGS')}
         >
@@ -319,7 +323,7 @@ export default function TransactionsScreen() {
         <TouchableOpacity
           style={[
             styles.archiveToggle,
-            { backgroundColor: showArchived ? '#64748b' : '#f1f5f9', borderColor: colors.border },
+            { backgroundColor: showArchived ? '#64748b' : colors.card, borderColor: showArchived ? '#64748b' : colors.border },
           ]}
           onPress={() => setShowArchived(!showArchived)}
         >
@@ -435,21 +439,19 @@ const styles = StyleSheet.create({
   },
 
   filterButton: {
-    flex: 1,
-    minWidth: '30%',
     paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: 20,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f1f5f9',
-    borderWidth: 0,
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 3,
     elevation: 2,
-    borderColor: '#e2e8f0',
+    borderColor: '#94a3b8',
   },
 
   filterText: {
@@ -527,12 +529,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 10,
-    borderWidth: 0,
+    borderWidth: 1.5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 3,
     elevation: 2,
+    borderColor: '#94a3b8',
   },
 
   empty: {

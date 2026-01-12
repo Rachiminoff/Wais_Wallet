@@ -10,7 +10,12 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <ThemeProvider initialDarkMode={false}>
-        <Stack initialRouteName="index">
+        <Stack 
+          initialRouteName="index"
+          screenOptions={{
+            animation: 'none',
+          }}
+        >
           {/* Main Screens */}
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ headerShown: false }} />

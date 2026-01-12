@@ -559,7 +559,7 @@ const AddFundsScreen: React.FC = () => {
         </Modal>
 
         {/* ERROR BOTTOM SHEET */}
-        <Modal transparent visible={showErrorModal}>
+        <Modal transparent visible={showErrorModal} animationType="fade">
           <View style={[styles.modalOverlay, { justifyContent: 'center', alignItems: 'center' }]}>
             <View
               style={[
@@ -614,7 +614,7 @@ const AddFundsScreen: React.FC = () => {
         </Modal>
 
         {/* SUCCESS MODAL */}
-        <Modal transparent visible={showSuccessModal}>
+        <Modal transparent visible={showSuccessModal} animationType="fade">
           <View style={[styles.modalOverlay, { justifyContent: 'center', alignItems: 'center' }]}>
             <View
               style={[

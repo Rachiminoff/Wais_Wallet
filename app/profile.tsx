@@ -1,14 +1,14 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Image,
-  Modal,
-  Platform,
-  SafeAreaView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    Modal,
+    Platform,
+    SafeAreaView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { createMMKV } from 'react-native-mmkv';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -20,11 +20,11 @@ import { useTheme } from './context/ThemeContext';
 import styles from './styles/profileStyles';
 
 import {
-  clearAllData,
-  exportAppData,
-  getUser,
-  importAppData,
-  logoutUser,
+    clearAllData,
+    exportAppData,
+    getUser,
+    importAppData,
+    logoutUser,
 } from './utils/mmkvStorage';
 
 /* ======================
@@ -479,7 +479,7 @@ const Profile: React.FC = () => {
       <BottomNavbar />
 
       {/* CHANGE NAME MODAL */}
-      <Modal transparent visible={changeNameVisible}>
+      <Modal transparent visible={changeNameVisible} animationType="fade">
         <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
           <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>
@@ -514,7 +514,7 @@ const Profile: React.FC = () => {
       </Modal>
 
       {/* CHANGE PASSWORD MODAL (FIXED) */}
-      <Modal transparent visible={changePwVisible}>
+      <Modal transparent visible={changePwVisible} animationType="fade">
         <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
           <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>

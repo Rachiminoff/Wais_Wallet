@@ -1,13 +1,13 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Image,
-  Modal,
-  SafeAreaView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    Modal,
+    SafeAreaView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -15,11 +15,11 @@ import { ThemeWrapper } from '../components/ThemeWrapper';
 import { useTheme } from '../context/ThemeContext';
 import styles from '../styles/editSavingsStyles';
 import {
-  deleteSavingsGoal,
-  getSavings,
-  getUser,
-  updateSavingsAmount,
-  updateSavingsGoal,
+    deleteSavingsGoal,
+    getSavings,
+    getUser,
+    updateSavingsAmount,
+    updateSavingsGoal,
 } from '../utils/mmkvStorage';
 
 export default function EditSavingsGoalScreen() {

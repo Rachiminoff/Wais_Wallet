@@ -1,13 +1,13 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
-  Image,
-  Modal,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    Modal,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -16,7 +16,7 @@ import { ThemeWrapper } from './components/ThemeWrapper';
 import { useTheme } from './context/ThemeContext';
 import styles from './styles/savingsStyles';
 import { Packet, SavingsGoal } from './types';
-import { addToSavings, archiveSavingsGoal, getPockets, getSavings, getUser, unarchiveSavingsGoal } from './utils/mmkvStorage';
+import { addToSavings, archiveSavingsGoal, getPockets, getSavings, getUser } from './utils/mmkvStorage';
 
 /* =========================
    SAVINGS SCREEN
@@ -107,28 +107,28 @@ export default function SavingsScreen() {
 
         {/* TRANSACTION HISTORY BUTTON */}
         <TouchableOpacity
-          style={[{
+          style={{
             paddingVertical: 14,
             paddingHorizontal: 12,
             borderRadius: 14,
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: 16,
-            borderWidth: 1,
+            borderWidth: 1.5,
             flexDirection: 'row',
             gap: 8,
             backgroundColor: colors.card,
             borderColor: colors.border,
-          }]}
+          }}
           onPress={() => router.push('/components/transactions')}
         >
-          <Icon name="time-outline" size={22} color={colors.text} />
-          <Text style={[{
+          <Icon name="time-outline" size={20} color={colors.text} />
+          <Text style={{
             fontSize: 14,
             fontWeight: '600',
             letterSpacing: 0.3,
             color: colors.text,
-          }]}>Transaction History</Text>
+          }}>Transaction History</Text>
         </TouchableOpacity>
 
         {/* SHOW ARCHIVED TOGGLE */}

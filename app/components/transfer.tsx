@@ -595,7 +595,7 @@ export default function TransferScreen() {
         </Modal>
 
         {/* SUCCESS */}
-        <Modal transparent visible={showSuccess}>
+        <Modal transparent visible={showSuccess} animationType="fade">
           <View style={[styles.modalOverlay, { justifyContent: 'center', alignItems: 'center' }]}>
             <View
               style={[
@@ -700,7 +700,7 @@ export default function TransferScreen() {
         </Modal>
 
         {/* ERROR */}
-        <Modal transparent visible={showError}>
+        <Modal transparent visible={showError} animationType="fade">
           <View style={[styles.modalOverlay, { justifyContent: 'center', alignItems: 'center' }]}>
             <View
               style={[

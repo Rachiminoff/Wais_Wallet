@@ -406,7 +406,7 @@ const AddExpenseScreen: React.FC = () => {
         </ScrollView>
 
         {/* CONFIRMATION MODAL */}
-        <Modal transparent visible={showConfirmModal}>
+        <Modal transparent visible={showConfirmModal} animationType="fade">
           <View style={[styles.modalOverlay, { justifyContent: 'center', alignItems: 'center' }]}>
             <View
               style={[
@@ -529,7 +529,7 @@ const AddExpenseScreen: React.FC = () => {
         )}
 
         {/* ERROR BOTTOM SHEET */}
-        <Modal transparent visible={showErrorModal}>
+        <Modal transparent visible={showErrorModal} animationType="fade">
           <View style={[styles.modalOverlay, { justifyContent: 'center', alignItems: 'center' }]}>
             <View
               style={[
@@ -586,7 +586,7 @@ const AddExpenseScreen: React.FC = () => {
         </Modal>
 
         {/* SUCCESS MODAL */}
-        <Modal transparent visible={showSuccessModal}>
+        <Modal transparent visible={showSuccessModal} animationType="fade">
           <View style={[styles.modalOverlay, { justifyContent: 'center', alignItems: 'center' }]}>
             <View
               style={[

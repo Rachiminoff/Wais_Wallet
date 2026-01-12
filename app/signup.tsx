@@ -181,7 +181,7 @@ export default function SignupScreen() {
 
         <View style={{ position: 'relative' }}>
           <TextInput
-            style={[styles.input, validationErrors.password && { borderColor: '#ff6b6b', borderWidth: 1 }]}
+            style={[styles.input, validationErrors.password && { borderColor: '#ff6b6b', borderWidth: 1 }, { color: '#000' }]}
             placeholder="Password"
             placeholderTextColor="#888"
             value={password}
@@ -210,7 +210,7 @@ export default function SignupScreen() {
 
         <View style={{ position: 'relative' }}>
           <TextInput
-            style={[styles.input, validationErrors.confirmPassword && { borderColor: '#ff6b6b', borderWidth: 1 }]}
+            style={[styles.input, validationErrors.confirmPassword && { borderColor: '#ff6b6b', borderWidth: 1 }, { color: '#000' }]}
             placeholder="Confirm Password"
             placeholderTextColor="#888"
             value={confirmPassword}
