@@ -10,14 +10,30 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingTop: 16,
   },
 
   /* ================= HEADER ================= */
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    padding: 20,
+    justifyContent: 'space-between',
+    position: 'relative',
+  },
+
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: PRIMARY,
+  },
+
+  divider: {
+    height: 1,
+    marginHorizontal: 20,
+    backgroundColor: '#E5E7EB',
+    marginBottom: 20,
   },
 
   /* ================= CONTAINER ================= */
@@ -28,12 +44,24 @@ const styles = StyleSheet.create({
 
   /* ================= SECTION ================= */
   sectionLabel: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: PRIMARY,
-    marginBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    marginBottom: 12,
+    paddingBottom: 5,
+  },
+
+  /* ================= FORM ================= */
+  formGroup: {
+    marginBottom: 20,
+    paddingHorizontal: 20,
+  },
+
+  label: {
+    fontSize: 13,
+    color: '#9AA0A6',
+    marginBottom: 6,
+    fontWeight: '700',
   },
 
   /* ================= INPUTS ================= */
@@ -41,37 +69,82 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: '#f3f6f6',
+    borderRadius: 10,
+    padding: 14,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 18,
-    marginBottom: 20,
-    backgroundColor: '#fff',
+    borderColor: '#E5E5E5',
   },
 
   dropdownSelectedText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: PRIMARY,
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#000',
   },
 
-  dropdownSelectedTextDanger: {
-    fontSize: 16,
+  /* ================= DROPDOWN LIST ================= */
+  dropdownList: {
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+    maxHeight: 250,
+    marginBottom: 20,
+  },
+
+  dropdownScroll: {
+    maxHeight: 250,
+  },
+
+  dropdownListItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E5E5EA',
+  },
+
+  dropdownListItemText: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
+
+  dropdownListItemAmount: {
+    fontSize: 15,
     fontWeight: '600',
-    color: DANGER,
   },
 
   /* ================= AMOUNT ================= */
+  input: {
+    backgroundColor: '#f3f6f6',
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 15,
+    color: '#000',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+  },
+
+  amountInput: {
+    opacity: 0.85,
+  },
+
   amountInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 14,
+    backgroundColor: '#f3f6f6',
+    borderRadius: 10,
     paddingHorizontal: 16,
-    marginBottom: 20,
-    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    marginBottom: 0,
+  },
+
+  amountInputContainerFocused: {
+    borderWidth: 1.5,
+    borderColor: PRIMARY,
   },
 
   currencySymbol: {
@@ -84,15 +157,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: DANGER,
-  },
-
-  amountInput: {
-    flex: 1,
-    fontSize: 28,
-    fontWeight: '700',
-    color: PRIMARY,
-    paddingVertical: 18,
-    paddingLeft: 8,
   },
 
   amountInputDanger: {
@@ -119,10 +183,18 @@ const styles = StyleSheet.create({
   /* ================= BUTTON ================= */
   continueButton: {
     backgroundColor: PRIMARY,
-    borderRadius: 14,
+    borderRadius: 18,
     paddingVertical: 18,
     alignItems: 'center',
-    marginBottom: 40,
+    marginTop: 28,
+    marginHorizontal: 20,
+
+  },
+
+  continueText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
   },
 
   continueButtonDanger: {
@@ -145,7 +217,6 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'flex-end',
   },
 
   dropdownModal: {

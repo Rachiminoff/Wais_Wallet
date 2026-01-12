@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import {
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 
@@ -210,7 +210,7 @@ export default function FAQPage() {
 
   return (
     <SafeAreaView
-      style={[styles.safe, { backgroundColor: colors.background }]}
+      style={[styles.safe, { backgroundColor: colors.background, paddingTop: 30 }]}
     >
       <ScrollView
         contentContainerStyle={styles.container}

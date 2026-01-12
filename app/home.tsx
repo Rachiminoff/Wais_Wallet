@@ -4,13 +4,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
-  Alert,
-  Dimensions,
-  SafeAreaView,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Dimensions,
+    Image,
+    KeyboardAvoidingView,
+    Modal,
+    SafeAreaView,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -24,10 +28,10 @@ import styles from './styles/HomeScreenStyles';
 import { Packet, User } from './types';
 
 import {
-  getCurrentTotalBalance,
-  getPockets,
-  getSavings,
-  getUser,
+    getCurrentTotalBalance,
+    getPockets,
+    getSavings,
+    getUser,
 } from './utils/mmkvStorage';
 
 const screenWidth = Dimensions.get('window').width;
@@ -57,6 +61,12 @@ export default function HomeScreen() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [showTotalBalance, setShowTotalBalance] = useState(false);
+  
+  const [editingBalance, setEditingBalance] = useState(false);
+  const [editedBalance, setEditedBalance] = useState('');
+  const [showEditBalanceModal, setShowEditBalanceModal] = useState(false);
+  const [showConfirmBalanceModal, setShowConfirmBalanceModal] = useState(false);
+  const [showSuccessBalanceModal, setShowSuccessBalanceModal] = useState(false);
 
   /* ====================
      LOAD DATA (ON FOCUS)
@@ -176,6 +186,45 @@ export default function HomeScreen() {
       color: PIE_COLORS[index % PIE_COLORS.length],
     };
   });
+
+  /* ====================
+     BALANCE EDIT HANDLERS
+  ==================== */
+  const hasBalanceChanges = () => {
+    return user && Number(editedBalance) !== user.balance;
+  };
+
+  const proceedToConfirmBalance = () => {
+    const value = Number(editedBalance);
+
+    if (isNaN(value) || value < 0) {
+      Alert.alert('Invalid amount');
+      return;
+    }
+
+    setShowEditBalanceModal(false);
+    setShowConfirmBalanceModal(true);
+  };
+
+  const handleSaveBalance = () => {
+    if (!user) return;
+
+    try {
+      const { saveUser } = require('./utils/mmkvStorage');
+      const updatedUser = {
+        ...user,
+        balance: Number(editedBalance),
+      };
+      
+      saveUser(updatedUser);
+      
+      setUser(updatedUser);
+      setShowConfirmBalanceModal(false);
+      setShowSuccessBalanceModal(true);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update balance');
+    }
+  };
 
   /* ====================
      UI
@@ -299,19 +348,37 @@ export default function HomeScreen() {
 
         {/* POCKETS */}
         <View
-          style={[
-            styles.pocketsList,
-            {
-              marginHorizontal: 12,
-              borderRadius: 24,
-              overflow: 'hidden',
-              marginBottom: 12,
-              backgroundColor: colors.card,
-            },
-          ]}
+          style={{
+            marginHorizontal: 12,
+            marginBottom: 12,
+          }}
         >
+          <View
+            style={[
+              styles.pocketsList,
+              {
+                borderRadius: 24,
+                overflow: 'hidden',
+                backgroundColor: colors.card,
+              },
+            ]}
+          >
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: '700',
+              color: colors.text,
+              paddingTop: 20,
+              paddingHorizontal: 24,
+              paddingBottom: 12,
+              letterSpacing: 0.5,
+              textTransform: 'uppercase',
+            }}
+          >
+            MY POCKETS
+          </Text>
           {pockets.length === 0 ? (
-            <Text style={{ padding: 20, color: colors.muted }}>
+            <Text style={{ paddingHorizontal: 24, paddingBottom: 20, color: colors.muted }}>
               No pockets yet
             </Text>
           ) : (
@@ -325,9 +392,6 @@ export default function HomeScreen() {
                   key={p.id}
                   style={[
                     styles.pocketRow,
-                    i === pockets.length - 1 && {
-                      borderBottomWidth: 0,
-                    },
                     { backgroundColor: colors.card },
                   ]}
                 >
@@ -351,6 +415,7 @@ export default function HomeScreen() {
               );
             })
           )}
+          </View>
         </View>
 
         {/* STATS */}
@@ -446,6 +511,7 @@ export default function HomeScreen() {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
+                justifyContent: 'center',
                 paddingHorizontal: 18,
               }}
             >
@@ -515,6 +581,224 @@ export default function HomeScreen() {
       />
 
       </ScrollView>
+
+      {/* EDIT BALANCE MODAL */}
+      <Modal transparent visible={showEditBalanceModal} animationType="fade">
+        <KeyboardAvoidingView behavior="height" style={{ flex: 1 }}>
+          <View style={[
+            { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', alignItems: 'center' }
+          ]}>
+            <View style={{
+              backgroundColor: colors.card,
+              padding: 20,
+              borderRadius: 24,
+              width: '85%',
+              maxWidth: 400,
+            }}>
+              <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 18, color: colors.text }}>
+                Edit Safe Balance
+              </Text>
+
+              <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 8, fontWeight: '600' }}>
+                Amount
+              </Text>
+
+              <TextInput
+                style={{
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  borderRadius: 12,
+                  paddingHorizontal: 14,
+                  paddingVertical: 12,
+                  fontSize: 15,
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                }}
+                keyboardType="numeric"
+                value={editedBalance}
+                onChangeText={setEditedBalance}
+              />
+
+              <View style={{
+                backgroundColor: colors.background,
+                padding: 14,
+                borderRadius: 12,
+                borderLeftWidth: 4,
+                borderLeftColor: '#0f4248',
+                marginVertical: 16,
+              }}>
+                <Text style={{ fontSize: 13, color: colors.muted, lineHeight: 18 }}>
+                  Note: This directly changes your safe balance without affecting pockets.
+                </Text>
+              </View>
+
+              <View style={{ flexDirection: 'row', marginTop: 24, gap: 10 }}>
+                <TouchableOpacity
+                  style={{
+                    flex: 1,
+                    backgroundColor: colors.border,
+                    paddingVertical: 14,
+                    borderRadius: 12,
+                    alignItems: 'center',
+                  }}
+                  onPress={() => setShowEditBalanceModal(false)}
+                >
+                  <Text style={{ color: colors.text, fontWeight: '600', fontSize: 14 }}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#0f4248',
+                    paddingVertical: 14,
+                    borderRadius: 12,
+                    alignItems: 'center',
+                    opacity: hasBalanceChanges() ? 1 : 0.5,
+                  }}
+                  disabled={!hasBalanceChanges()}
+                  onPress={proceedToConfirmBalance}
+                >
+                  <Text style={{ color: '#fff', fontWeight: '600', fontSize: 14 }}>Continue</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* CONFIRM BALANCE MODAL */}
+      <Modal transparent visible={showConfirmBalanceModal} animationType="fade">
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.35)',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+          <View style={{
+            backgroundColor: colors.card,
+            padding: 20,
+            borderRadius: 24,
+            width: '85%',
+            maxWidth: 400,
+          }}>
+            <Text style={{
+              fontSize: 18,
+              fontWeight: '600',
+              marginBottom: 16,
+              color: colors.text,
+              textAlign: 'center',
+            }}>
+              Confirm Changes
+            </Text>
+
+            <View style={{
+              backgroundColor: colors.background,
+              padding: 14,
+              borderRadius: 12,
+              borderLeftWidth: 4,
+              borderLeftColor: '#0f4248',
+              marginBottom: 24,
+            }}>
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 4 }}>
+                  Safe Balance
+                </Text>
+                <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
+                  ₱{user?.balance.toFixed(2)} → ₱{Number(editedBalance).toFixed(2)}
+                </Text>
+              </View>
+
+              <Text style={{ fontSize: 12, color: colors.muted, lineHeight: 16 }}>
+                Note: This directly changes your safe balance without affecting pockets.
+              </Text>
+            </View>
+
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: colors.border,
+                  paddingVertical: 14,
+                  borderRadius: 12,
+                  alignItems: 'center',
+                }}
+                onPress={() => setShowConfirmBalanceModal(false)}
+              >
+                <Text style={{ color: colors.text, fontWeight: '600', fontSize: 15 }}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: '#1C2B3A',
+                  paddingVertical: 14,
+                  borderRadius: 12,
+                  alignItems: 'center',
+                }}
+                onPress={handleSaveBalance}
+              >
+                <Text style={{ color: '#fff', fontWeight: '600', fontSize: 15 }}>Confirm</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* SUCCESS BALANCE MODAL */}
+      <Modal transparent visible={showSuccessBalanceModal} animationType="fade">
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.35)',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+          <View style={{
+            backgroundColor: colors.card,
+            borderRadius: 24,
+            width: '85%',
+            maxWidth: 400,
+            alignItems: 'center',
+            paddingVertical: 40,
+            paddingHorizontal: 20,
+          }}>
+            <Image
+              source={require('../assets/successOwl.png')}
+              style={{
+                width: 120,
+                height: 120,
+                resizeMode: 'contain',
+                marginBottom: 12,
+              }}
+            />
+
+            <Text style={{
+              fontSize: 18,
+              fontWeight: '600',
+              marginBottom: 24,
+              color: colors.text,
+              textAlign: 'center',
+            }}>
+              Balance Updated!
+            </Text>
+
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#1C2B3A',
+                paddingVertical: 14,
+                paddingHorizontal: 30,
+                borderRadius: 12,
+                width: '80%',
+                alignItems: 'center',
+              }}
+              onPress={() => {
+                setShowSuccessBalanceModal(false);
+              }}
+            >
+              <Text style={{ color: '#fff', fontWeight: '600', fontSize: 15 }}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <BottomNavbar />
     </SafeAreaView>

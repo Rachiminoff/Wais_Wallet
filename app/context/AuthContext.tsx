@@ -1,13 +1,13 @@
 import React, { createContext, ReactNode, useCallback, useEffect, useState } from 'react';
 import {
-  AuthError,
-  getUser,
-  loginUser,
-  logoutUser,
-  registerUser,
-  saveUser,
-  updateUserBalance,
-  User
+    getUser,
+    isLoggedIn,
+    loginUser,
+    logoutUser,
+    registerUser,
+    saveUser,
+    updateUserBalance,
+    User
 } from '../utils/mmkvStorage';
 
 export interface AuthContextType {
@@ -49,8 +49,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.log('Migrated user currency from USD to PHP');
         }
         
-        // Restore user session from storage
-        if (existingUser) {
+        // Restore user session from storage only if logged in
+        const loggedIn = isLoggedIn();
+        if (existingUser && loggedIn) {
           setUser(existingUser);
           setIsAuthenticated(true);
         } else {
@@ -58,7 +59,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setIsAuthenticated(false);
         }
       } catch (err) {
-        const errorMessage = err instanceof AuthError ? err.message : 'Failed to initialize authentication';
+        const errorMessage = (err && typeof err === 'object' && 'message' in err) ? String(err.message) : 'Failed to initialize authentication';
         console.error('Auth initialization error:', errorMessage);
         setError(errorMessage);
         setIsAuthenticated(false);
@@ -97,7 +98,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setError(errorMsg);
         return { success: false, error: errorMsg };
       } catch (err) {
-        const errorMessage = err instanceof AuthError ? err.message : 'Login failed';
+        const errorMessage = (err && typeof err === 'object' && 'message' in err) ? String(err.message) : 'Login failed';
         setError(errorMessage);
         console.error('Login error:', errorMessage);
         return { success: false, error: errorMessage };
@@ -131,7 +132,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Don't auto-login after signup - user needs to login manually
         return { success: true };
       } catch (err) {
-        const errorMessage = err instanceof AuthError ? err.message : 'Registration failed';
+        const errorMessage = (err && typeof err === 'object' && 'message' in err) ? String(err.message) : 'Registration failed';
         setError(errorMessage);
         console.error('Signup error:', errorMessage);
         return { success: false, error: errorMessage };
@@ -149,7 +150,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsAuthenticated(false);
       setError(null);
     } catch (err) {
-      const errorMessage = err instanceof AuthError ? err.message : 'Logout failed';
+      const errorMessage = (err && typeof err === 'object' && 'message' in err) ? String(err.message) : 'Logout failed';
       console.error('Logout error:', errorMessage);
       setError(errorMessage);
     }
@@ -177,7 +178,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
         return { success: true };
       } catch (err) {
-        const errorMessage = err instanceof AuthError ? err.message : 'Failed to update balance';
+        const errorMessage = (err && typeof err === 'object' && 'message' in err) ? String(err.message) : 'Failed to update balance';
         setError(errorMessage);
         console.error('Balance update error:', errorMessage);
         return { success: false, error: errorMessage };
@@ -208,7 +209,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(updatedUser);
         return { success: true };
       } catch (err) {
-        const errorMessage = err instanceof AuthError ? err.message : 'Failed to update user';
+        const errorMessage = (err && typeof err === 'object' && 'message' in err) ? String(err.message) : 'Failed to update user';
         setError(errorMessage);
         console.error('User update error:', errorMessage);
         return { success: false, error: errorMessage };

@@ -1,14 +1,17 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
-  Modal,
-  SafeAreaView,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Modal,
+    SafeAreaView,
+    ScrollView,
+    Switch,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -16,14 +19,15 @@ import { useTheme } from '../context/ThemeContext';
 import styles from '../styles/editPocketStyles';
 import { Packet } from '../types';
 import {
-  deletePocket,
-  getPockets,
-  updatePocket,
+    deletePocket,
+    getPockets,
+    getUser,
+    updatePocket,
 } from '../utils/mmkvStorage';
 
 export default function EditPocketScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, font } = useTheme();
 
   const [pockets, setPockets] = useState<Packet[]>([]);
   const [selectedPocket, setSelectedPocket] =
@@ -31,9 +35,11 @@ export default function EditPocketScreen() {
 
   const [editedName, setEditedName] = useState('');
   const [editedAmount, setEditedAmount] = useState('');
+  const [adjustSafeBalance, setAdjustSafeBalance] = useState(false);
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   /* ====================
@@ -50,12 +56,28 @@ export default function EditPocketScreen() {
     setSelectedPocket(pocket);
     setEditedName(pocket.name);
     setEditedAmount(String(pocket.amount));
+    setAdjustSafeBalance(false);
     setShowEditModal(true);
   };
 
   /* ====================
      CONFIRM EDIT
   ==================== */
+  const hasChanges = () => {
+    if (!selectedPocket) return false;
+    return (
+      editedName.trim() !== selectedPocket.name ||
+      Number(editedAmount) !== selectedPocket.amount
+    );
+  };
+
+  const amountDiff = selectedPocket
+    ? Number(editedAmount || 0) - selectedPocket.amount
+    : 0;
+
+  const safeBalanceBefore = getUser()?.balance ?? 0;
+  const safeBalanceAfter = safeBalanceBefore - amountDiff;
+
   const proceedToConfirm = () => {
     const value = Number(editedAmount);
 
@@ -83,15 +105,14 @@ export default function EditPocketScreen() {
       updatePocket(
         selectedPocket.id,
         editedName.trim(),
-        Number(editedAmount)
+        Number(editedAmount),
+        adjustSafeBalance
       );
 
       setPockets(getPockets());
 
       setShowConfirmModal(false);
-      setSelectedPocket(null);
-
-      Alert.alert('Success', 'Pocket updated');
+      setShowSuccessModal(true);
     } catch (err: any) {
       Alert.alert('Error', err.message);
     }
@@ -122,7 +143,7 @@ export default function EditPocketScreen() {
     <SafeAreaView
       style={[
         styles.safeArea,
-        { backgroundColor: colors.background },
+        { backgroundColor: colors.background, paddingTop: 30 },
       ]}
     >
       {/* HEADER */}
@@ -143,7 +164,7 @@ export default function EditPocketScreen() {
         <Text
           style={[
             styles.headerTitle,
-            { color: colors.text },
+            { color: colors.text, fontSize: font + 4, fontWeight: '700' },
           ]}
         >
           Edit Pocket
@@ -151,6 +172,13 @@ export default function EditPocketScreen() {
 
         <View style={{ width: 24 }} />
       </View>
+
+      <View
+        style={[
+          styles.divider,
+          { backgroundColor: colors.border },
+        ]}
+      />
 
       {/* TABLE HEADER */}
       <View
@@ -178,7 +206,10 @@ export default function EditPocketScreen() {
       </View>
 
       {/* POCKET LIST */}
-      <ScrollView>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 0, paddingVertical: 8 }}
+        showsVerticalScrollIndicator={false}
+      >
         {pockets.map(pocket => (
           <View
             key={pocket.id}
@@ -203,7 +234,7 @@ export default function EditPocketScreen() {
 
               <TouchableOpacity
                 onPress={() => startEdit(pocket)}
-                hitSlop={10}
+                hitSlop={15}
               >
                 <Icon
                   name="pencil-outline"
@@ -214,7 +245,7 @@ export default function EditPocketScreen() {
 
               <TouchableOpacity
                 onPress={() => confirmDelete(pocket)}
-                hitSlop={10}
+                hitSlop={15}
               >
                 <Icon
                   name="trash-outline"
@@ -231,13 +262,17 @@ export default function EditPocketScreen() {
           EDIT MODAL
       ==================== */}
       <Modal transparent visible={showEditModal} animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View
-            style={[
-              styles.modalSheet,
-              { backgroundColor: colors.card },
-            ]}
-          >
+        <KeyboardAvoidingView
+          behavior="height"
+          style={{ flex: 1 }}
+        >
+          <View style={styles.modalOverlay}>
+            <View
+              style={[
+                styles.modalSheet,
+                { backgroundColor: colors.card },
+              ]}
+            >
             <Text
               style={[
                 styles.modalTitle,
@@ -294,6 +329,21 @@ export default function EditPocketScreen() {
               onChangeText={setEditedAmount}
             />
 
+            <View style={[styles.toggleRow, { borderColor: colors.border }]}> 
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.toggleLabel, { color: colors.text }]}>Adjust Safe Balance</Text>
+                <Text style={{ fontSize: 12, color: colors.muted }}>
+                  When on, changes here will deduct/add from Safe Balance.
+                </Text>
+              </View>
+              <Switch
+                value={adjustSafeBalance}
+                onValueChange={setAdjustSafeBalance}
+                thumbColor={adjustSafeBalance ? '#0f4248' : '#f4f3f4'}
+                trackColor={{ false: '#d9d9d9', true: '#9fb7bd' }}
+              />
+            </View>
+
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={styles.cancelButton}
@@ -310,7 +360,11 @@ export default function EditPocketScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.confirmButton}
+                style={[
+                  styles.confirmButton,
+                  !hasChanges() && { opacity: 0.5 },
+                ]}
+                disabled={!hasChanges()}
                 onPress={proceedToConfirm}
               >
                 <Text style={styles.confirmText}>
@@ -319,24 +373,32 @@ export default function EditPocketScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* ====================
           CONFIRM MODAL
       ==================== */}
       <Modal transparent visible={showConfirmModal} animationType="fade">
-        <View style={styles.modalOverlay}>
+        <View style={[styles.modalOverlay, { justifyContent: 'center', alignItems: 'center' }]}>
           <View
             style={[
               styles.modalSheet,
-              { backgroundColor: colors.card },
+              { 
+                backgroundColor: colors.card,
+                borderRadius: 24,
+                width: '85%',
+                maxWidth: 400,
+                paddingHorizontal: 30,
+                paddingVertical: 40,
+              },
             ]}
           >
             <Text
               style={[
                 styles.modalTitle,
-                { color: colors.text },
+                { color: colors.text, textAlign: 'center' },
               ]}
             >
               Confirm Changes
@@ -345,44 +407,169 @@ export default function EditPocketScreen() {
             <View
               style={[
                 styles.infoBox,
-                { backgroundColor: colors.background },
+                { backgroundColor: colors.background, marginBottom: 24 },
               ]}
             >
-              <Text
-                style={[
-                  styles.infoText,
-                  { color: colors.text },
-                ]}
-              >
-                This will update your pocket name and
-                balance immediately. Are you sure?
-              </Text>
-            </View>
+              {editedName.trim() !== selectedPocket?.name && (
+                <View style={{ marginBottom: 12 }}>
+                  <Text
+                    style={[
+                      styles.infoText,
+                      { color: colors.textMuted, fontSize: 13 },
+                    ]}
+                  >
+                    Pocket Name
+                  </Text>
+                  <Text
+                    style={[
+                      styles.infoText,
+                      { color: colors.text, fontWeight: '600', fontSize: 15 },
+                    ]}
+                  >
+                    {selectedPocket?.name} → {editedName}
+                  </Text>
+                </View>
+              )}
 
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => setShowConfirmModal(false)}
-              >
+              {Number(editedAmount) !== selectedPocket?.amount && (
+                <View style={{ marginBottom: 12 }}>
+                  <Text
+                    style={[
+                      styles.infoText,
+                      { color: colors.textMuted, fontSize: 13 },
+                    ]}
+                  >
+                    Amount
+                  </Text>
+                  <Text
+                    style={[
+                      styles.infoText,
+                      { color: colors.text, fontWeight: '600', fontSize: 15 },
+                    ]}
+                  >
+                    ₱{Number(selectedPocket?.amount ?? 0).toFixed(2)} → ₱{Number(editedAmount).toFixed(2)}
+                  </Text>
+                </View>
+              )}
+
+              {adjustSafeBalance && Number(editedAmount) !== selectedPocket?.amount && (
+                <View style={{ marginBottom: 12 }}>
+                  <Text
+                    style={[
+                      styles.infoText,
+                      { color: colors.textMuted, fontSize: 13 },
+                    ]}
+                  >
+                    Safe Balance
+                  </Text>
+                  <Text
+                    style={[
+                      styles.infoText,
+                      { color: colors.text, fontWeight: '600', fontSize: 15 },
+                    ]}
+                  >
+                    ₱{safeBalanceBefore.toFixed(2)} → ₱{safeBalanceAfter.toFixed(2)}
+                  </Text>
+                </View>
+              )}
+
+              {!adjustSafeBalance && Number(editedAmount) !== selectedPocket?.amount && (
                 <Text
                   style={[
-                    styles.cancelText,
-                    { color: colors.muted },
+                    styles.infoText,
+                    { color: colors.textMuted, fontSize: 12, lineHeight: 16 },
                   ]}
                 >
-                  Cancel
+                  This directly changes the pocket's balance and won't be deducted from or added to other pockets.
                 </Text>
+              )}
+            </View>
+
+            <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: colors.border,
+                  paddingVertical: 14,
+                  borderRadius: 12,
+                  alignItems: 'center',
+                }}
+                onPress={() => setShowConfirmModal(false)}
+              >
+                <Text style={{ color: colors.text, fontWeight: '600', fontSize: 15 }}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.confirmButton}
+                style={{
+                  flex: 1,
+                  backgroundColor: '#1C2B3A',
+                  paddingVertical: 14,
+                  borderRadius: 12,
+                  alignItems: 'center',
+                }}
                 onPress={handleSave}
               >
-                <Text style={styles.confirmText}>
-                  Confirm
-                </Text>
+                <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 15 }}>Confirm</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ====================
+          SUCCESS MODAL
+      ==================== */}
+      <Modal transparent visible={showSuccessModal} animationType="fade">
+        <View style={[styles.modalOverlay, { justifyContent: 'center', alignItems: 'center' }]}>
+          <View
+            style={[
+              styles.modalSheet,
+              { 
+                backgroundColor: colors.card,
+                borderRadius: 24,
+                width: '85%',
+                maxWidth: 400,
+                alignItems: 'center',
+                paddingVertical: 40,
+              },
+            ]}
+          >
+            <Image
+              source={require('../../assets/successOwl.png')}
+              style={{
+                width: 120,
+                height: 120,
+                resizeMode: 'contain',
+                marginBottom: 12,
+              }}
+            />
+
+            <Text
+              style={[
+                styles.modalTitle,
+                { color: colors.text, textAlign: 'center' },
+              ]}
+            >
+              Pocket Updated!
+            </Text>
+
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#1C2B3A',
+                paddingVertical: 14,
+                paddingHorizontal: 30,
+                borderRadius: 12,
+                marginTop: 24,
+                width: '80%',
+                alignItems: 'center',
+              }}
+              onPress={() => {
+                setShowSuccessModal(false);
+                setSelectedPocket(null);
+              }}
+            >
+              <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 15 }}>Done</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -391,64 +578,72 @@ export default function EditPocketScreen() {
           DELETE MODAL
       ==================== */}
       <Modal transparent visible={showDeleteModal} animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View
-            style={[
-              styles.modalSheet,
-              { backgroundColor: colors.card },
-            ]}
-          >
-            <Text
-              style={[
-                styles.modalTitle,
-                { color: colors.text },
-              ]}
-            >
-              Delete "{selectedPocket?.name}"?
-            </Text>
-
+        <KeyboardAvoidingView
+          behavior="height"
+          style={{ flex: 1 }}
+        >
+          <View style={styles.modalOverlay}>
             <View
               style={[
-                styles.warningBox,
-                { backgroundColor: colors.background },
+                styles.modalSheet,
+                { backgroundColor: colors.card },
               ]}
             >
               <Text
                 style={[
-                  styles.warningText,
-                  { color: colors.text },
+                  styles.modalTitle,
+                  { color: colors.text, textAlign: 'center' },
                 ]}
               >
-                This will permanently delete this pocket.
+                Delete "{selectedPocket?.name}"?
               </Text>
-            </View>
 
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => setShowDeleteModal(false)}
+              <View
+                style={[
+                  styles.warningBox,
+                  { 
+                    backgroundColor: '#ffebee',
+                    borderLeftColor: '#d32f2f',
+                  },
+                ]}
               >
                 <Text
                   style={[
-                    styles.cancelText,
-                    { color: colors.muted },
+                    styles.warningText,
+                    { color: '#c62828', textAlign: 'center' },
                   ]}
                 >
-                  Cancel
+                  This will permanently delete this pocket. The remaining balance will be added to your Safe Balance.
                 </Text>
-              </TouchableOpacity>
+              </View>
 
-              <TouchableOpacity
-                style={styles.confirmButton}
-                onPress={handleDelete}
-              >
-                <Text style={styles.confirmText}>
-                  Confirm
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setShowDeleteModal(false)}
+                >
+                  <Text
+                    style={[
+                      styles.cancelText,
+                      { color: colors.muted },
+                    ]}
+                  >
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.confirmButton}
+                  onPress={handleDelete}
+                >
+                  <Text style={styles.confirmText}>
+                    Confirm
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );

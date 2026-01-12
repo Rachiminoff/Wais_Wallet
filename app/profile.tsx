@@ -1,14 +1,14 @@
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Image,
-  Modal,
-  Platform,
-  SafeAreaView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    Modal,
+    Platform,
+    SafeAreaView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { createMMKV } from 'react-native-mmkv';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -20,10 +20,11 @@ import { useTheme } from './context/ThemeContext';
 import styles from './styles/profileStyles';
 
 import {
-  clearAllData,
-  exportAppData,
-  importAppData,
-  logoutUser,
+    clearAllData,
+    exportAppData,
+    getUser,
+    importAppData,
+    logoutUser,
 } from './utils/mmkvStorage';
 
 /* ======================
@@ -46,6 +47,19 @@ const Profile: React.FC = () => {
   /* ======================
      STATE
   ====================== */
+  const [localUser, setLocalUser] = useState(authUser);
+
+  // Load user from storage if not available from context
+  useEffect(() => {
+    if (!authUser) {
+      const storedUser = getUser();
+      if (storedUser) {
+        setLocalUser(storedUser);
+      }
+    } else {
+      setLocalUser(authUser);
+    }
+  }, [authUser]);
 
   const [changePwVisible, setChangePwVisible] = useState(false);
   const [changeNameVisible, setChangeNameVisible] = useState(false);
@@ -68,7 +82,16 @@ const Profile: React.FC = () => {
   const [onSuccessClose, setOnSuccessClose] =
     useState<(() => void) | null>(null);
 
-  if (!authUser) return null;
+  // Show loading or error state if user not available
+  if (!localUser) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: colors.text, fontSize: 16 }}>Loading profile...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   /* ======================
      HELPERS
@@ -121,7 +144,7 @@ const Profile: React.FC = () => {
       return;
     }
 
-    if (trimmed === authUser.name) {
+    if (trimmed === localUser.name) {
       showError('No changes', 'This is already your current name.');
       return;
     }
@@ -133,6 +156,8 @@ const Profile: React.FC = () => {
       return;
     }
 
+    // Update local user immediately
+    setLocalUser({ ...localUser, name: trimmed });
     setNewName('');
     setChangeNameVisible(false);
 
@@ -316,12 +341,12 @@ const Profile: React.FC = () => {
                   { color: colors.text },
                 ]}
               >
-                {authUser.name.charAt(0)}
+                {localUser.name.charAt(0)}
               </Text>
             </View>
 
             <Text style={[styles.userName, { fontSize: getFontSize() }]}>
-              {authUser.name}
+              {localUser.name}
             </Text>
           </View>
         </View>
@@ -454,7 +479,7 @@ const Profile: React.FC = () => {
       <BottomNavbar />
 
       {/* CHANGE NAME MODAL */}
-      <Modal transparent visible={changeNameVisible}>
+      <Modal transparent visible={changeNameVisible} animationType="fade">
         <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
           <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>
@@ -489,7 +514,7 @@ const Profile: React.FC = () => {
       </Modal>
 
       {/* CHANGE PASSWORD MODAL (FIXED) */}
-      <Modal transparent visible={changePwVisible}>
+      <Modal transparent visible={changePwVisible} animationType="fade">
         <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
           <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>
@@ -639,7 +664,7 @@ const Profile: React.FC = () => {
               style={styles.primaryButton}
               onPress={() => {
                 setSuccessVisible(false);
-                onSuccessClose?.();
+                onSuccessClose?.();4
               }}
             >
               <Text style={styles.primaryText}>OK</Text>

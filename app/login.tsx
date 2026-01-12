@@ -267,6 +267,7 @@ export default function LoginScreen() {
                   autoCapitalize="none"
                   autoComplete="password"
                   editable={!loading}
+                  style={[styles.input, { color: '#000' }]}
                 />
 
                 <TouchableOpacity

@@ -10,7 +10,12 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <ThemeProvider initialDarkMode={false}>
-        <Stack initialRouteName="index">
+        <Stack 
+          initialRouteName="index"
+          screenOptions={{
+            animation: 'none',
+          }}
+        >
           {/* Main Screens */}
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ headerShown: false }} />
@@ -20,14 +25,15 @@ export default function RootLayout() {
           <Stack.Screen name="cards" options={{ headerShown: false }} />
           <Stack.Screen name="BudgetScreen" options={{ headerShown: false }} />
           <Stack.Screen name="savings" options={{ headerShown: false }} />
+          <Stack.Screen name="expenses" options={{ headerShown: false }} />
 
           {/* Components */}
           <Stack.Screen name="components/addFunds" options={{ headerShown: false }} />
+          <Stack.Screen name="components/addExpense" options={{ headerShown: false }} />
           <Stack.Screen name="components/addPocket" options={{ headerShown: false }} />
           <Stack.Screen name="components/transfer" options={{ headerShown: false }} />
           <Stack.Screen name="components/EditPocketScreen" options={{ headerShown: false }} />
           <Stack.Screen name="components/NewSavingsGoalScreen" options={{ headerShown: false }} />
-          <Stack.Screen name="components/AddToSavingsScreen" options={{ headerShown: false }} />
           <Stack.Screen name="components/EditSavingsGoalScreen" options={{ headerShown: false }} />
           <Stack.Screen name="components/transactions" options={{ headerShown: false }} />
           <Stack.Screen name="components/faq" options={{ headerShown: false }} />

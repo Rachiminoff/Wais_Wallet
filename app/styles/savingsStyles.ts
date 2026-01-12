@@ -3,55 +3,73 @@ import { StyleSheet } from 'react-native';
 const PRIMARY = '#0f3d3e';
 
 export default StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: '#efefef',
+    backgroundColor: '#F2F2F7',
   },
 
   /* HEADER */
   header: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: 16,
+    paddingTop: 16,
     paddingBottom: 16,
-    marginTop : 40,
+    marginTop: 40,
+    marginBottom: 4,
   },
 
-  headerTitle: {
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 4,
+    letterSpacing: 0.5,
+  },
+
+  primaryButton: {
+    backgroundColor: '#1C2B3A',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 5,
+    marginBottom: 28,
+    marginTop: 12,
+  },
+
+  primaryButtonText: {
+    color: '#FFF',
     fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 12,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
 
   addGoalButton: {
-    backgroundColor: '#183645',
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-
-  addGoalText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 14,
+    backgroundColor: '#1C2B3A',
   },
 
   /* CONTENT */
   content: {
-    padding: 20,
-    paddingBottom: 120,
+    paddingHorizontal: 16,
+    paddingBottom: 100,
   },
 
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFF',
     borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+    padding: 18,
+    marginBottom: 14,
+    marginTop: 10,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
 
   cardHeader: {
@@ -85,9 +103,9 @@ export default StyleSheet.create({
 
   /* PROGRESS */
   progressBackground: {
-    height: 14,
+    height: 24,
     backgroundColor: '#dbe6e4',
-    borderRadius: 10,
+    borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 14,
   },
@@ -96,26 +114,40 @@ export default StyleSheet.create({
     height: '100%',
     backgroundColor: '#6fa3a1',
     justifyContent: 'center',
-    paddingLeft: 8,
+    paddingLeft: 10,
   },
 
   progressText: {
     color: '#fff',
-    fontSize: 10,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
   },
 
   addSavingsButton: {
-    backgroundColor: '#183645',
-    paddingVertical: 12,
-    borderRadius: 10,
+    backgroundColor: '#1C2B3A',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
     alignItems: 'center',
+    marginTop: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
   },
 
   addSavingsText: {
-    color: '#fff',
+    color: '#FFF',
     fontWeight: '600',
-    fontSize: 13,
+    fontSize: 14,
+    letterSpacing: 0.3,
+  },
+
+  emptyText: {
+    textAlign: 'center',
+    fontSize: 15,
+    marginTop: 40,
   },
 
   /* BOTTOM NAV */

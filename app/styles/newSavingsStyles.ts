@@ -8,8 +8,8 @@ const CARD = '#ffffff';
 const SUBTLE_BG = '#f3f4f6';
 
 export default StyleSheet.create({
-  /* ================= SAFE AREA ================= */
-  safeArea: {
+  /* ================= CONTAINER ================= */
+  container: {
     flex: 1,
     backgroundColor: CARD,
   },
@@ -33,11 +33,17 @@ export default StyleSheet.create({
     height: 1,
     marginHorizontal: 20,
     backgroundColor: BORDER,
+    marginBottom: 20,
+  },
+
+  /* ================= CONTENT ================= */
+  content: {
+    paddingHorizontal: 20,
   },
 
   /* ================= FORM ================= */
   form: {
-    padding: 20,
+    paddingHorizontal: 20,
   },
 
   label: {

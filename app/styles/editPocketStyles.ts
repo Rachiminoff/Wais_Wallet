@@ -14,15 +14,21 @@ export default StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 18,
+    padding: 20,
     justifyContent: 'space-between',
   },
 
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: PRIMARY,
+  },
+
+  divider: {
+    height: 1,
+    marginHorizontal: 20,
+    backgroundColor: '#E5E7EB',
+    marginBottom: 20,
   },
 
   /* ====================
@@ -31,21 +37,28 @@ export default StyleSheet.create({
   tableHeader: {
     flexDirection: 'row',
     paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: '#eef3f2',
+    paddingVertical: 14,
+    backgroundColor: '#f8f9f9',
+    marginBottom: 2,
   },
 
   columnLeft: {
     flex: 1,
-    fontSize: 13,
-    color: '#6c7c7c',
+    fontSize: 12,
+    color: '#9AA0A6',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 
   columnRight: {
     width: 120,
-    fontSize: 13,
-    color: '#6c7c7c',
+    fontSize: 12,
+    color: '#9AA0A6',
     textAlign: 'left',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 
   /* ====================
@@ -53,25 +66,30 @@ export default StyleSheet.create({
   ==================== */
   row: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    marginHorizontal: 8,
+    marginVertical: 6,
+    borderRadius: 14,
+    backgroundColor: '#fafbfb',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
   },
 
   pocketName: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 15,
+    fontWeight: '500',
     color: '#111',
   },
 
   amountCell: {
-    width: 120,
+    width: 140,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    gap: 12,
+    gap: 18,
   },
 
   /* ====================
@@ -80,32 +98,36 @@ export default StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.35)',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   modalSheet: {
     backgroundColor: '#fff',
     padding: 20,
     paddingBottom: 28,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderRadius: 24,
+    width: '85%',
+    maxWidth: 400,
   },
 
   modalTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '600',
-    marginBottom: 18,
+    marginBottom: 16,
     color: '#111',
+    lineHeight: 24,
   },
 
   /* ====================
      INPUTS
   ==================== */
   inputLabel: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#6c7c7c',
-    marginBottom: 6,
-    marginTop: 10,
+    marginBottom: 8,
+    marginTop: 14,
+    fontWeight: '600',
   },
 
   textInput: {
@@ -115,34 +137,62 @@ export default StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
-    backgroundColor: '#fff',
+    backgroundColor: '#fafbfb',
+    fontWeight: '400',
+  },
+
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: '#e3e3e3',
+    borderRadius: 12,
+    marginTop: 12,
+    gap: 12,
+  },
+
+  toggleLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111',
+    marginBottom: 2,
   },
 
   /* ====================
      INFO / WARNING BOXES
   ==================== */
   infoBox: {
-    backgroundColor: '#f7f7f7',
+    backgroundColor: '#f5f7f7',
     padding: 14,
     borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#0f4248',
+    marginBottom: 12,
   },
 
   infoText: {
     fontSize: 13,
     color: '#444',
     lineHeight: 18,
+    fontWeight: '400',
   },
 
   warningBox: {
-    backgroundColor: '#f7f7f7',
+    backgroundColor: '#fef9f5',
     padding: 14,
     borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#ff9800',
+    marginBottom: 12,
   },
 
   warningText: {
     fontSize: 13,
-    color: '#444',
+    color: '#555',
     lineHeight: 18,
+    fontWeight: '400',
   },
 
   /* ====================
@@ -150,16 +200,18 @@ export default StyleSheet.create({
   ==================== */
   modalActions: {
     flexDirection: 'row',
-    marginTop: 22,
-    gap: 12,
+    marginTop: 24,
+    gap: 10,
   },
 
   cancelButton: {
     flex: 1,
-    backgroundColor: '#e7eeee',
+    backgroundColor: '#f0f0f0',
     paddingVertical: 14,
-    borderRadius: 14,
+    borderRadius: 12,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
 
   cancelText: {
@@ -172,7 +224,7 @@ export default StyleSheet.create({
     flex: 1,
     backgroundColor: PRIMARY,
     paddingVertical: 14,
-    borderRadius: 14,
+    borderRadius: 12,
     alignItems: 'center',
   },
 
