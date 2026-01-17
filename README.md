@@ -1,4 +1,4 @@
-# Wais Pocket (Wais Wallet)
+# Wais Wallet
 
 **Wais Pocket** is a personal finance mobile app that digitizes the traditional "envelope budgeting system." It helps users allocate income into specific **“Wais Pockets”** (e.g., Rent, Groceries, Leisure, Savings) and track spending per pocket, promoting better financial discipline.
 
