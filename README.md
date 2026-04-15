@@ -51,13 +51,6 @@ This approach ensures that every unit of currency has a defined purpose.
 
 ---
 
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js (v16 or higher recommended)  
-- npm or yarn  
-- Expo CLI  
-
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for the full list of changes.
